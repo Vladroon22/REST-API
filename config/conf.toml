@@ -1,0 +1,8 @@
+host="localhost"
+port="5432"
+username="postgres"
+pass="12345"
+sslmode="disable"
+dbname="rest_api_db"
+
+addr_port = "127.0.0.1:8000"
