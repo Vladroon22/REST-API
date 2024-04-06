@@ -31,7 +31,7 @@ func (s *Server) Run() {
 
 	router.Pref("/").SayHello()
 	router.Pref("/auth").EndPoints()
-	router.Pref("/users").UserEndPoints()
+	router.Pref("/auth/users").UserEndPoints() // only if reg was success
 
 	s.server = &http.Server{
 		Addr:         s.conf.Addr_PORT,

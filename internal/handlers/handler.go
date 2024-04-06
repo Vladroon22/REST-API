@@ -9,90 +9,84 @@ import (
 
 type Router struct {
 	R *mux.Router
-	// L *logrus.Logger
 }
 
 func NewRouter() Router {
 	return Router{
 		R: mux.NewRouter(),
-		//		L: logrus.New(),
 	}
 }
 
 func (r *Router) Pref(path string) Router {
-	var handler http.Handler = r.R
-	r.R.Handle(path+"/", http.StripPrefix(path, handler))
+	r.R.PathPrefix(path + "/").Handler(http.StripPrefix(path, r.R))
 	return *r
 }
 
 func (r Router) SayHello() {
-	r.R.HandleFunc("/", Hello).Methods("GET")
-	// r.L.Infoln("Handler -> Hello")
+	r.R.HandleFunc("/", hello).Methods("GET")
 }
 
 func (r Router) EndPoints() {
-	r.R.HandleFunc("/sign-up", SignUp).Methods("GET")
-	r.R.HandleFunc("/sign-in", SignIn).Methods("GET")
-	r.R.HandleFunc("/logout", LogOut).Methods("GET")
-	// r.L.Infoln("Handlers of AuthEndPoints")
+	r.R.HandleFunc("/sign-up", signUp).Methods("GET")
+	r.R.HandleFunc("/sign-in", signIn).Methods("GET")
+	r.R.HandleFunc("/logout", logOut).Methods("GET")
 }
 
 func (r Router) UserEndPoints() {
-	r.R.HandleFunc("/users", GetList).Methods("GET")
-	r.R.HandleFunc("/users", CreateUser).Methods("POST")
-	r.R.HandleFunc("/users/{id}", GetUserByID).Methods("GET")
-	r.R.HandleFunc("/users/{id}", UpdateUser).Methods("PUT")
-	r.R.HandleFunc("/users/{id}", PartUpdateUser).Methods("PATCH")
-	r.R.HandleFunc("/users/{id}", DeleteUser).Methods("DELETE")
-	// r.L.Infoln("Handlers of UserEndPoints")
+	r.R.HandleFunc("/users", getList).Methods("GET")
+	r.R.HandleFunc("/users", createUser).Methods("POST")
+	r.R.HandleFunc("/users/{id}", getUserByID).Methods("GET")
+	r.R.HandleFunc("/users/{id}", updateUser).Methods("PUT")
+	r.R.HandleFunc("/users/{id}", partUpdateUser).Methods("PATCH")
+	r.R.HandleFunc("/users/{id}", deleteUser).Methods("DELETE")
 }
 
-func Hello(w http.ResponseWriter, r *http.Request) {
+func hello(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK) // http_test.go
 	io.WriteString(w, "Welcome to our Web-site!")
 }
 
-func SignUp(w http.ResponseWriter, r *http.Request) { // register
+func signUp(w http.ResponseWriter, r *http.Request) { // register
 	w.WriteHeader(http.StatusOK) // http_test.go
 	io.WriteString(w, "You have registered")
 }
 
-func SignIn(w http.ResponseWriter, r *http.Request) { // Entry
+func signIn(w http.ResponseWriter, r *http.Request) { // Entry
 	w.WriteHeader(http.StatusOK) // http_test.go
 	io.WriteString(w, "SignIn was successfully")
 }
 
-func LogOut(w http.ResponseWriter, r *http.Request) { //logOut
+func logOut(w http.ResponseWriter, r *http.Request) { //logOut
 	w.WriteHeader(http.StatusOK) // http_test.go
 	io.WriteString(w, "You have been logout")
 }
 
-func GetList(w http.ResponseWriter, r *http.Request) { // GET
+func getList(w http.ResponseWriter, r *http.Request) { // GET
 	w.WriteHeader(http.StatusOK) // http_test.go
 	io.WriteString(w, "This is our users")
 }
 
-func CreateUser(w http.ResponseWriter, r *http.Request) { // POST
+func createUser(w http.ResponseWriter, r *http.Request) { // POST
 	w.WriteHeader(201) // http_test.go
 	io.WriteString(w, "This is our New user")
 }
 
-func GetUserByID(w http.ResponseWriter, r *http.Request) { // GET
+func getUserByID(w http.ResponseWriter, r *http.Request) { // GET
 	w.WriteHeader(http.StatusOK) // http_test.go
 	io.WriteString(w, "This is our user by id")
 }
 
-func UpdateUser(w http.ResponseWriter, r *http.Request) { // PUT
+func updateUser(w http.ResponseWriter, r *http.Request) { // PUT
 	w.WriteHeader(204) // http_test.go
 	io.WriteString(w, "This is our updated user")
 }
 
-func PartUpdateUser(w http.ResponseWriter, r *http.Request) { // PATCH
+func partUpdateUser(w http.ResponseWriter, r *http.Request) { // PATCH
 	w.WriteHeader(204) // http_test.go
 	io.WriteString(w, "This is our part update user")
 }
 
-func DeleteUser(w http.ResponseWriter, r *http.Request) { // DELETE
+func deleteUser(w http.ResponseWriter, r *http.Request) { // DELETE
 	w.WriteHeader(204) // http_test.go
 	io.WriteString(w, "This is our deleted user")
 }

@@ -27,7 +27,6 @@ func (d *DataBase) ConfigDB() error {
 		d.logger.Infoln(err)
 		return err
 	}
-	d.logger.Infoln("Success configuration")
 	return nil
 }
 

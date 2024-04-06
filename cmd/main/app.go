@@ -37,8 +37,5 @@ func main() {
 		return
 	}
 
-	serv := server.New(conf, logg, srv)
-	serv.Run()
-
-	logg.Infoln("Application starts...")
+	server.New(conf, logg, srv).Run()
 }
