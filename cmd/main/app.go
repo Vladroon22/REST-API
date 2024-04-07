@@ -26,14 +26,14 @@ func main() {
 
 	_, err := toml.DecodeFile(pathToToml, conf)
 	if err != nil {
-		logg.Infoln(err)
+		logg.Errorln(err)
 		return
 	}
 
 	d := db.NewDB(conf, logg)
 
 	if err := d.ConfigDB(); err != nil {
-		logg.Infoln(err)
+		logg.Errorln(err)
 		return
 	}
 

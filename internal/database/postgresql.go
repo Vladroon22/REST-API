@@ -24,21 +24,21 @@ func NewDB(conf *config.Config, log *logrus.Logger) *DataBase {
 
 func (d *DataBase) ConfigDB() error {
 	if err := d.openDB(*d.config); err != nil {
-		d.logger.Infoln(err)
+		d.logger.Errorln(err)
 		return err
 	}
 	return nil
 }
 
 func (d *DataBase) openDB(conf config.Config) error {
-	db, err := sql.Open("postgres", fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?%s", conf.Username, conf.Password, conf.Host, conf.Port, conf.DBname, conf.SSLmode))
+	db, err := sql.Open("postgres", fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?", conf.Username, conf.Password, conf.Host, conf.Port, conf.DBname))
 	if err != nil {
-		d.logger.Infoln(err)
+		d.logger.Errorln(err)
 		return err
 	}
 
 	if err := db.Ping(); err != nil {
-		d.logger.Infoln("Wrong config: ", err)
+		d.logger.Errorln("Wrong config: ", err)
 	}
 	d.sqlDB = db
 	d.logger.Infoln("Database configurated")
