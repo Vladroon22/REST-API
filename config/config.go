@@ -6,8 +6,8 @@ type Config struct {
 	Port      string `toml:"port"`
 	Username  string `toml:"username"`
 	Password  string `toml:"pass"`
-	//	SSLmode   string `toml:"sslmode"`
-	DBname string `toml:"dbname"`
+	SSLmode   string `toml:"sslmode"`
+	DBname    string `toml:"dbname"`
 }
 
 func CreateConfig() *Config {

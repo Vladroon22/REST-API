@@ -6,5 +6,16 @@ build:
 run: build
 	./rest
 
-# docker build
+docker:
+	docker build . -t server
+	docker run --name=server -p 8080:8000 -d server
 
+docker-rm:
+	docker stop server
+	docker rm server
+
+docker-rmi:
+	docker rmi server
+
+up:
+	docker-compose up 

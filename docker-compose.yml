@@ -1,13 +1,15 @@
 version: '3.9'
 
 services:
-  postgres: 
+  postgres-db: 
     image: postgres:latest
     container_name: rest_api_db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 12345
       POSTGRES_DB: rest_api_db
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
     ports:
       - "5430:5432"
     restart: unless-stopped

@@ -31,14 +31,11 @@ func (d *DataBase) ConfigDB() error {
 }
 
 func (d *DataBase) openDB(conf config.Config) error {
-	db, err := sql.Open("postgres", fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?", conf.Username, conf.Password, conf.Host, conf.Port, conf.DBname))
+	str := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?%s", conf.Username, conf.Password, conf.Host, conf.Port, conf.DBname, conf.SSLmode)
+	db, err := sql.Open("postgres", str)
 	if err != nil {
 		d.logger.Errorln(err)
 		return err
-	}
-
-	if err := db.Ping(); err != nil {
-		d.logger.Errorln("Wrong config: ", err)
 	}
 	d.sqlDB = db
 	d.logger.Infoln("Database configurated")
