@@ -8,7 +8,7 @@ run: build
 
 docker:
 	docker build . -t server
-	docker run --name=server -p 8080:8000 -d server
+	docker run --name=server -p 8080:8000 -p 5430:5432 -d server
 
 docker-rm:
 	docker stop server

@@ -10,4 +10,4 @@ RUN make
 
 CMD [ "./rest" ]
 
-EXPOSE 8000
+EXPOSE 8000 5432
