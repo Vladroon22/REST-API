@@ -48,7 +48,7 @@ func (um *UserModel) UpdateUserFully(id int, name, email, pass string) (*User, e
 func (um *UserModel) PartUpdateUserName(id int, name string) (*User, error) {
 	user := &User{}
 	if err := um.db.sqlDB.QueryRow(
-		"UPDATE FROM users WHERE id = $1 RETURNING id, SET username", id, name,
+		"UPDATE users SET username = $2 WHERE id = $1 RETURNING id, username", id, name,
 	).Scan(&user.ID, &user.Name); err != nil {
 		um.db.logger.Infoln(err)
 		return nil, err
@@ -61,7 +61,7 @@ func (um *UserModel) PartUpdateUserName(id int, name string) (*User, error) {
 func (um *UserModel) PartUpdateUserEmail(id int, email string) (*User, error) {
 	user := &User{}
 	if err := um.db.sqlDB.QueryRow(
-		"UPDATE FROM users WHERE id = $1 RETURNING id, SET email", id, email,
+		"UPDATE users SET email = $3 WHERE id = $1 RETURNING id, email", id, email,
 	).Scan(&user.ID, &user.Email); err != nil {
 		um.db.logger.Infoln(err)
 		return nil, err
@@ -74,7 +74,7 @@ func (um *UserModel) PartUpdateUserEmail(id int, email string) (*User, error) {
 func (um *UserModel) PartUpdateUserPass(id int, pass string) (*User, error) {
 	user := &User{}
 	if err := um.db.sqlDB.QueryRow(
-		"UPDATE FROM users WHERE id = $1 RETURNING id, SET encrypt_password", id, pass,
+		"UPDATE users SET username = $4 WHERE id = $1 RETURNING id, encrypt_password", id, pass,
 	).Scan(&user.ID, &user.Password); err != nil {
 		um.db.logger.Infoln(err)
 		return nil, err
