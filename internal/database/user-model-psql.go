@@ -7,9 +7,10 @@ type UserModel struct {
 func (um *UserModel) CreateNewUser(user *User) (*User, error) {
 	if err := um.db.sqlDB.QueryRow(
 		"INSERT INTO users (username, email, encrypt_password) VALUES ($2, $3, $4) RETURNING id",
+		&user.ID,
 		&user.Name,
 		&user.Email,
-		&user.Password,
+		&user.Encrypt_Password,
 	).Scan(&user.ID); err != nil {
 		um.db.logger.Errorln(err)
 		return nil, err
@@ -23,7 +24,7 @@ func (um *UserModel) DeleteUser(id int) (*User, error) {
 	user := &User{}
 	if err := um.db.sqlDB.QueryRow(
 		"DELETE FROM users WHERE id = $1 RETURNING id, username, email, encrypt_password", id,
-	).Scan(&user.ID, &user.Name, &user.Password); err != nil {
+	).Scan(&user.ID, &user.Name, &user.Encrypt_Password); err != nil {
 		um.db.logger.Errorln(err)
 		return nil, err
 	}
@@ -36,7 +37,7 @@ func (um *UserModel) UpdateUserFully(id int, name, email, pass string) (*User, e
 	user := &User{}
 	if err := um.db.sqlDB.QueryRow(
 		"UPDATE users SET username = $2, email = $3, encrypt_password = $4 WHERE id = $1 RETURNING id, username, email, encrypt_password", name, email, pass, id,
-	).Scan(&user.ID, &user.Name, &user.Password); err != nil {
+	).Scan(&user.ID, &user.Name, &user.Encrypt_Password); err != nil {
 		um.db.logger.Errorln(err)
 		return nil, err
 	}
@@ -75,7 +76,7 @@ func (um *UserModel) PartUpdateUserPass(id int, pass string) (*User, error) {
 	user := &User{}
 	if err := um.db.sqlDB.QueryRow(
 		"UPDATE users SET username = $4 WHERE id = $1 RETURNING id, encrypt_password", id, pass,
-	).Scan(&user.ID, &user.Password); err != nil {
+	).Scan(&user.ID, &user.Encrypt_Password); err != nil {
 		um.db.logger.Infoln(err)
 		return nil, err
 	}
