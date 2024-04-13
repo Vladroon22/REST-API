@@ -1,6 +1,13 @@
 version: '3.9'
 
 services:
+  app:
+    image: server
+    container_name: server
+    depends_on:
+      - postgres-db
+    networks:
+      - ps
   postgres-db: 
     image: postgres:latest
     container_name: rest_api_db
@@ -13,3 +20,8 @@ services:
     ports:
       - "5430:5432"
     restart: unless-stopped
+    networks:
+      - ps
+
+networks:
+  ps:
