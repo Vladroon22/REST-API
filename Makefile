@@ -6,16 +6,16 @@ build:
 run: build
 	./rest
 
-docker:
-	docker build . -t server
-	docker run --name=server -p 8080:8000 -p 5430:5432 -d server
-
+dockers:
+	sudo docker pull postgres
+	sudo docker build . -t server
 docker-rm:
-	docker stop server
-	docker rm server
-
+	sudo docker stop server
+	sudo docker rm server
+	sudo docker stop rest_api_db
+	sudo docker rm rest_api_db
 docker-rmi:
-	docker rmi server
-
+	sudo docker rmi server
+	sudo docker rmi postgres
 up:
-	docker-compose up 
+	sudo docker compose -f docker-compose.yml up

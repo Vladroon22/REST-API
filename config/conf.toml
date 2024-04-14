@@ -1,5 +1,5 @@
-host="localhost"
-port="5430"
+host="postgres-db"
+port="5432"
 username="postgres"
 pass="12345"
 sslmode="disable"

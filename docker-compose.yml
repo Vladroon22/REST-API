@@ -4,10 +4,15 @@ services:
   app:
     image: server
     container_name: server
+    build: ./
+    command: ./rest
     depends_on:
       - postgres-db
     networks:
       - ps
+    ports:
+      - "8080:8000"
+
   postgres-db: 
     image: postgres:latest
     container_name: rest_api_db

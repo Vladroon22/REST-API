@@ -34,6 +34,7 @@ func (d *DataBase) ConfigDB() error {
 func (d *DataBase) openDB(conf config.Config) error {
 	str := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?%s", conf.Username, conf.Password, conf.Host, conf.Port, conf.DBname, conf.SSLmode)
 	db, err := sql.Open("postgres", str)
+	d.logger.Infoln(str)
 	if err != nil {
 		d.logger.Errorln(err)
 		return err
