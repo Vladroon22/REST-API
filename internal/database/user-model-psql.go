@@ -5,9 +5,9 @@ type UserModel struct {
 }
 
 func (um *UserModel) CreateNewUser(user *User) error {
-	_, err := um.db.sqlDB.Exec("INSERT INTO users (username, email, encrypt_password) VALUES ($2, $3, $4) RETURNING id",
-		user.ID, user.Name, user.Email, user.Encrypt_Password)
-	if err != nil {
+	if err := um.db.sqlDB.QueryRow("INSERT INTO users (username, email, encrypt_password) VALUES ($2, $3, $4) RETURNING id",
+		user.ID, user.Name, user.Email, user.Encrypt_Password,
+	).Scan(&user.ID); err != nil {
 		um.db.logger.Errorln(err)
 		return err
 	}

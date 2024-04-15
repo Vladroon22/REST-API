@@ -11,10 +11,11 @@ services:
     networks:
       - ps
     ports:
-      - "8080:8000"
-
+      - "8000:8000"
+    tty: true
+    
   postgres-db: 
-    image: postgres:latest
+    image: postgres:16.2
     container_name: rest_api_db
     environment:
       POSTGRES_USER: postgres
