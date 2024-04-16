@@ -39,6 +39,10 @@ func (d *DataBase) openDB(conf config.Config) error {
 		d.logger.Errorln(err)
 		return err
 	}
+	if err := db.Ping(); err != nil {
+		d.logger.Errorln(err)
+		return err
+	}
 	d.sqlDB = db
 	d.logger.Infoln("Database configurated")
 
