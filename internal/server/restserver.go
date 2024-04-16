@@ -7,8 +7,6 @@ import (
 	"github.com/Vladroon22/REST-API/config"
 	"github.com/Vladroon22/REST-API/internal/handlers"
 	"github.com/sirupsen/logrus"
-
-	db "github.com/Vladroon22/REST-API/internal/database"
 )
 
 type Server struct {
@@ -40,12 +38,6 @@ func (s *Server) Run() {
 		Handler:      router.R,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
-	}
-
-	d := db.NewDB(s.conf, s.logger)
-
-	if err := d.ConfigDB(); err != nil {
-		s.logger.Fatalln(err)
 	}
 
 	s.logger.Infoln("Server is listening -->")

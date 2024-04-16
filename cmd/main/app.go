@@ -6,6 +6,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/Vladroon22/REST-API/config"
+	db "github.com/Vladroon22/REST-API/internal/database"
 	"github.com/Vladroon22/REST-API/internal/server"
 	"github.com/sirupsen/logrus"
 )
@@ -27,6 +28,12 @@ func main() {
 	if err != nil {
 		logg.Errorln(err)
 		return
+	}
+
+	d := db.NewDB(conf, logg)
+
+	if err := d.ConfigDB(); err != nil {
+		logg.Fatalln(err)
 	}
 
 	server.New(conf, logg, srv).Run()

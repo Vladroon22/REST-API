@@ -6,8 +6,11 @@ build:
 run: build
 	./rest
 
+test:
+	go test ./tests
+
 dockers:
-	sudo docker pull postgres
+	sudo docker pull postgres:16.2
 	sudo docker build . -t server
 docker-rm:
 	sudo docker stop server
@@ -16,6 +19,6 @@ docker-rm:
 	sudo docker rm rest_api_db
 docker-rmi:
 	sudo docker rmi server
-	sudo docker rmi postgres
+	sudo docker rmi postgres:16.2
 up:
 	sudo docker compose -f docker-compose.yml up
