@@ -1,11 +1,11 @@
 version: '3.9'
 
 services:
-  app:
-    image: server
+  server:
+    build: 
+      context: .
+      dockerfile: Dockerfile
     container_name: server
-    build: ./
-    command: ./rest
     depends_on:
       - postgres-db
     networks:

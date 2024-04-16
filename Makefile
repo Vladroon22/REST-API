@@ -7,18 +7,19 @@ run: build
 	./rest
 
 test:
-	go test ./tests
+	@sleep 3
+	go test -v ./tests
 
 dockers:
 	sudo docker pull postgres:16.2
-	sudo docker build . -t server
+	sudo docker build . -t rest-api-server
 docker-rm:
 	sudo docker stop server
 	sudo docker rm server
 	sudo docker stop rest_api_db
 	sudo docker rm rest_api_db
 docker-rmi:
-	sudo docker rmi server
+	sudo docker rmi rest-api-server
 	sudo docker rmi postgres:16.2
 up:
 	sudo docker compose -f docker-compose.yml up
