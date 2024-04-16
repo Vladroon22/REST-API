@@ -4,16 +4,20 @@ type UserModel struct {
 	db *DataBase
 }
 
-func (um *UserModel) CreateNewUser(user *User) error {
+func (um *UserModel) CreateNewUser(user *User) (*User, error) {
+	if err := user.HashingPass(); err != nil {
+		um.db.logger.Errorln(err)
+		return nil, err
+	}
 	if err := um.db.sqlDB.QueryRow("INSERT INTO users (username, email, encrypt_password) VALUES ($2, $3, $4) RETURNING id",
 		user.ID, user.Name, user.Email, user.Encrypt_Password,
 	).Scan(&user.ID); err != nil {
 		um.db.logger.Errorln(err)
-		return err
+		return nil, err
 	}
 
 	um.db.logger.Infoln("User successfully added")
-	return nil
+	return user, nil
 }
 
 func (um *UserModel) DeleteUser(id int) (*User, error) {
