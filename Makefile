@@ -3,7 +3,7 @@
 build:
 	go build -o ./rest cmd/main/app.go
 
-run: build # work only with postgres image
+run: build 
 	./rest
 
 test:
