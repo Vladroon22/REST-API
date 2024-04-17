@@ -18,6 +18,7 @@ services:
     image: postgres:16.2
     container_name: rest_api_db
     environment:
+      POSTGRES_HOST: localhost
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 12345
       POSTGRES_DB: rest_api_db

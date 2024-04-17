@@ -3,11 +3,10 @@
 build:
 	go build -o ./rest cmd/main/app.go
 
-run: build
+run: build # work only with postgres image
 	./rest
 
 test:
-	@sleep 3
 	go test -v ./tests
 
 dockers:
@@ -23,3 +22,7 @@ docker-rmi:
 	sudo docker rmi postgres:16.2
 up:
 	sudo docker compose -f docker-compose.yml up
+
+# tests in docker
+# 	sudo docker exec -it server sh
+#	go -v ./tests
