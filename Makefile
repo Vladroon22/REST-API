@@ -9,9 +9,13 @@ run: build
 test:
 	go test -v ./tests
 
-dockers:
-	sudo docker pull postgres:16.2
-	sudo docker build . -t rest-api-server
+up:
+	sudo docker compose -f docker-compose.yml up
+
+tests-in-docker:
+	sudo docker exec -it server sh
+#	make test
+
 docker-rm:
 	sudo docker stop server
 	sudo docker rm server
@@ -20,9 +24,3 @@ docker-rm:
 docker-rmi:
 	sudo docker rmi rest-api-server
 	sudo docker rmi postgres:16.2
-up:
-	sudo docker compose -f docker-compose.yml up
-
-# tests in docker
-# 	sudo docker exec -it server sh
-#	go -v ./tests
