@@ -25,7 +25,7 @@ services:
       - ./pgdata:/var/lib/postgresql/data
     ports:
       - "5430:5432"
-    restart: unless-stopped
+    restart: always
     networks:
       - ps
 

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -42,4 +43,8 @@ func (s *Server) Run() {
 
 	s.logger.Infoln("Server is listening -->")
 	s.logger.Fatalln(s.server.ListenAndServe())
+}
+
+func (s *Server) Shutdown(ctx context.Context) error {
+	return s.server.Shutdown(ctx)
 }
