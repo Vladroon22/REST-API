@@ -1,6 +1,10 @@
 package database
 
 import (
+	"testing"
+
+	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -30,4 +34,16 @@ func encrypt(pass string) (string, error) {
 		return "", err
 	}
 	return string(encrypt), nil
+}
+
+func (user *User) Valid() error {
+	return validation.ValidateStruct(user, validation.Field(&user.Email, validation.Required, is.Email),
+		validation.Field(&user.Password, validation.Required, validation.Length(8, 50)))
+}
+
+func CreateUserForTest(t *testing.T) *User {
+	return &User{
+		Email:    "example@gmail.com",
+		Password: "12345678",
+	}
 }

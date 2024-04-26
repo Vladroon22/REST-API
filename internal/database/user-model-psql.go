@@ -5,6 +5,10 @@ type UserModel struct {
 }
 
 func (um *UserModel) CreateNewUser(user *User) (*User, error) {
+	if err := user.Valid(); err != nil {
+		um.db.logger.Infoln(err)
+		return nil, err
+	}
 	if err := user.HashingPass(); err != nil {
 		um.db.logger.Errorln(err)
 		return nil, err
