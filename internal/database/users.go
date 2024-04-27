@@ -1,8 +1,6 @@
 package database
 
 import (
-	"testing"
-
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"golang.org/x/crypto/bcrypt"
@@ -41,9 +39,16 @@ func (user *User) Valid() error {
 		validation.Field(&user.Password, validation.Required, validation.Length(8, 50)))
 }
 
-func CreateUserForTest(t *testing.T) *User {
-	return &User{
+func CreateUser() *User {
+	user := &User{
 		Email:    "example@gmail.com",
 		Password: "12345678",
 	}
+	if err := user.HashingPass(); err != nil {
+		return nil
+	}
+	if err := user.Valid(); err != nil {
+		return nil
+	}
+	return user
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func TestUser(t *testing.T) {
-	user := db.CreateUserForTest(t)
+	user := db.CreateUser()
 
 	assert.NoError(t, user.HashingPass())
 	assert.NotEmpty(t, user.Encrypt_Password)
@@ -19,40 +19,44 @@ func TestDataValid(t *testing.T) {
 	Cases := []struct {
 		username string
 		valid    bool
-		us       func() *db.User
+		us       func(*db.User)
+		us1      func() *db.User
 	}{
 		{
 			username: "vlad",
-			us:       func() *db.User { return db.CreateUserForTest(t) }, // !!!
 			valid:    true,
+			us:       func(*db.User) { TestUser(t) },
 		},
 		{
 			username: "null email",
-			us: func() *db.User {
-				user := db.CreateUserForTest(t) /// !!!
-				user.Email = " "
+			valid:    false,
+			us1: func() *db.User {
+				user := db.CreateUser()
+				user.Email = ""
 				return user
-
 			},
-			valid: false,
 		},
 		{
 			username: "null password",
-			us: func() *db.User {
-				user := db.CreateUserForTest(t) /// !!!
+			valid:    false,
+			us1: func() *db.User {
+				user := db.CreateUser()
 				user.Password = ""
 				return user
 			},
-			valid: false,
 		},
 	}
 
 	for _, cases := range Cases {
 		t.Run(cases.username, func(t *testing.T) {
+			user := db.CreateUser()
+			cases.us(user)
 			if cases.valid {
-				assert.NoError(t, cases.us().Valid())
+				assert.NoError(t, cases.us1().Valid())
+				assert.NoError(t, user.Valid())
 			} else {
-				assert.Error(t, cases.us().Valid())
+				assert.Error(t, cases.us1().Valid())
+				assert.Error(t, user.Valid())
 			}
 		})
 	}
