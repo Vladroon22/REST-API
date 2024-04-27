@@ -22,6 +22,16 @@ func NewDB(conf *config.Config) *DataBase {
 	}
 }
 
+/*
+	type Storage interface {
+		CreateNewUser(user *User) (*User, error)
+		DeleteUser(id int) (*User, error)
+		UpdateUserFully(id int, name, email, pass string) (*User, error)
+		PartUpdateUserName(id int, name string) (*User, error)
+		PartUpdateUserEmail(id int, email string) (*User, error)
+		PartUpdateUserPass(id int, pass string) (*User, error)
+	}
+*/
 func (d *DataBase) ConfigDB() error {
 	if err := d.openDB(*d.config); err != nil {
 		d.logger.Errorln(err)

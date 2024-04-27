@@ -3,20 +3,22 @@ package handlers
 import (
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 
-	db "github.com/Vladroon22/REST-API/internal/database"
+	"github.com/Vladroon22/REST-API/internal/database"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 )
 
 type Router struct {
-	R *mux.Router
+	R    *mux.Router
+	logg *logrus.Logger
 }
 
 func NewRouter() Router {
 	return Router{
-		R: mux.NewRouter(),
+		R:    mux.NewRouter(),
+		logg: logrus.New(),
 	}
 }
 
@@ -30,9 +32,9 @@ func (r Router) SayHello() {
 }
 
 func (r Router) EndPoints() {
-	r.R.HandleFunc("/sign-up", signUp).Methods("GET")
-	r.R.HandleFunc("/sign-in", signIn).Methods("GET")
-	r.R.HandleFunc("/logout", logOut).Methods("GET")
+	r.R.HandleFunc("/sign-up", r.signUp).Methods("GET")
+	r.R.HandleFunc("/sign-in", r.signIn).Methods("GET")
+	r.R.HandleFunc("/logout", r.logOut).Methods("GET")
 }
 
 func (r Router) UserEndPoints() {
@@ -49,18 +51,22 @@ func hello(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Welcome to our Web-site!")
 }
 
-func signUp(w http.ResponseWriter, r *http.Request) { // register
-	log.Fatal(CreateAccount(w, r)) // add logger
-	w.WriteHeader(http.StatusOK)   // http_test.go
+func (rout Router) signUp(w http.ResponseWriter, r *http.Request) { // register
+	if err := CreateAccount(w, r); err != nil {
+		rout.logg.Errorln("Failed to create new user: ", err)
+		http.Error(w, "Error: ", http.StatusInternalServerError)
+	}
+
+	w.WriteHeader(http.StatusOK) // http_test.go
 	io.WriteString(w, "You have registered")
 }
 
-func signIn(w http.ResponseWriter, r *http.Request) { // Entry
-	w.WriteHeader(http.StatusOK) // http_test.go
+func (rout Router) signIn(w http.ResponseWriter, r *http.Request) { // Entry
+	w.WriteHeader(http.StatusOK) // http_test.goa
 	io.WriteString(w, "SignIn was successfully")
 }
 
-func logOut(w http.ResponseWriter, r *http.Request) { //logOut
+func (rout Router) logOut(w http.ResponseWriter, r *http.Request) { //logOut
 	w.WriteHeader(http.StatusOK) // http_test.go
 	io.WriteString(w, "You have been logout")
 }
@@ -103,10 +109,20 @@ func WriteJSON(w http.ResponseWriter, status int, a any) error {
 }
 
 func CreateAccount(w http.ResponseWriter, r *http.Request) error {
-	input := &db.User{}
+	input := &database.User{
+		ID:       1,
+		Name:     "Vlad",
+		Email:    "12345@gmail.com",
+		Password: "12345678",
+	}
 	if err := json.NewDecoder(r.Body).Decode(input); err != nil {
 		return err
 	}
+	_, err := database.CreateNewUser(input)
+	if err != nil {
+		return err
+	}
+
 	return WriteJSON(w, http.StatusOK, input)
 }
 
