@@ -7,31 +7,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUser(t *testing.T) {
-	user := db.CreateUser()
-
-	assert.NoError(t, user.HashingPass())
-	assert.NotEmpty(t, user.Encrypt_Password)
-	assert.NoError(t, user.Valid())
-}
-
 func TestDataValid(t *testing.T) {
 	Cases := []struct {
 		username string
 		valid    bool
-		us       func(*db.User)
-		us1      func() *db.User
+		us       func() *db.User
 	}{
 		{
 			username: "vlad",
 			valid:    true,
-			us:       func(*db.User) { TestUser(t) },
+			us:       func() *db.User { return db.CreateUser(t) },
 		},
 		{
 			username: "null email",
 			valid:    false,
-			us1: func() *db.User {
-				user := db.CreateUser()
+			us: func() *db.User {
+				user := db.CreateUser(t)
 				user.Email = ""
 				return user
 			},
@@ -39,8 +30,8 @@ func TestDataValid(t *testing.T) {
 		{
 			username: "null password",
 			valid:    false,
-			us1: func() *db.User {
-				user := db.CreateUser()
+			us: func() *db.User {
+				user := db.CreateUser(t)
 				user.Password = ""
 				return user
 			},
@@ -49,14 +40,10 @@ func TestDataValid(t *testing.T) {
 
 	for _, cases := range Cases {
 		t.Run(cases.username, func(t *testing.T) {
-			user := db.CreateUser()
-			cases.us(user)
 			if cases.valid {
-				assert.NoError(t, cases.us1().Valid())
-				assert.NoError(t, user.Valid())
+				assert.NoError(t, cases.us().Valid())
 			} else {
-				assert.Error(t, cases.us1().Valid())
-				assert.Error(t, user.Valid())
+				assert.Error(t, cases.us().Valid())
 			}
 		})
 	}

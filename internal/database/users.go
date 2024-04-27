@@ -38,17 +38,3 @@ func (user *User) Valid() error {
 	return validation.ValidateStruct(user, validation.Field(&user.Email, validation.Required, is.Email),
 		validation.Field(&user.Password, validation.Required, validation.Length(8, 50)))
 }
-
-func CreateUser() *User {
-	user := &User{
-		Email:    "example@gmail.com",
-		Password: "12345678",
-	}
-	if err := user.HashingPass(); err != nil {
-		return nil
-	}
-	if err := user.Valid(); err != nil {
-		return nil
-	}
-	return user
-}
