@@ -30,8 +30,8 @@ func (s *Server) Run() {
 	router := handlers.NewRouter()
 	s.logger.Infoln("Created New router")
 
-	router.Pref("/").SayHello()
-	router.Pref("/auth").EndPoints()
+	router.Pref("/").SayHello()                // <-- logout
+	router.Pref("/auth").EndPoints()           // <-- sign-up/sign-in
 	router.Pref("/auth/users").UserEndPoints() // only if reg was success
 
 	s.server = &http.Server{

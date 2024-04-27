@@ -10,7 +10,6 @@ import (
 )
 
 type DataBase struct {
-	um     *UserModel
 	logger *logrus.Logger
 	config *config.Config
 	sqlDB  *sql.DB
@@ -51,16 +50,4 @@ func (d *DataBase) openDB(conf config.Config) error {
 
 func (db *DataBase) CloseDB() {
 	db.sqlDB.Close()
-}
-
-func (db *DataBase) SetUser() *UserModel {
-	if db.um != nil {
-		return db.um
-	}
-
-	db.um = &UserModel{
-		db: db,
-	}
-
-	return db.um
 }

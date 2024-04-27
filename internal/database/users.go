@@ -7,11 +7,11 @@ import (
 )
 
 type User struct {
-	ID               int
-	Name             string
-	Email            string
-	Encrypt_Password string // secure
-	Password         string // open
+	ID               int    `json:"id"`
+	Name             string `json:"username"`
+	Email            string `json:"email"`
+	Encrypt_Password string `json:"enc_pass"` // secure
+	Password         string `json:"pass"`     // open
 }
 
 func (user *User) HashingPass() error {

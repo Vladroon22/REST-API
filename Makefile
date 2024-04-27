@@ -4,6 +4,8 @@ build:
 	go build -o ./rest cmd/main/app.go
 
 run: build 
+#	sudo docker pull postgres:16.2 
+#	sudo docker run --name=rest_api_db -e POSTGRES_PASSWORD=12345 -p 5430:5432 -d postgres:16.2
 	./rest
 
 test:

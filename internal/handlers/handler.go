@@ -1,9 +1,12 @@
 package handlers
 
 import (
+	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 
+	db "github.com/Vladroon22/REST-API/internal/database"
 	"github.com/gorilla/mux"
 )
 
@@ -47,7 +50,8 @@ func hello(w http.ResponseWriter, r *http.Request) {
 }
 
 func signUp(w http.ResponseWriter, r *http.Request) { // register
-	w.WriteHeader(http.StatusOK) // http_test.go
+	log.Fatal(CreateAccount(w, r)) // add logger
+	w.WriteHeader(http.StatusOK)   // http_test.go
 	io.WriteString(w, "You have registered")
 }
 
@@ -89,4 +93,35 @@ func partUpdateUser(w http.ResponseWriter, r *http.Request) { // PATCH
 func deleteUser(w http.ResponseWriter, r *http.Request) { // DELETE
 	w.WriteHeader(204) // http_test.go
 	io.WriteString(w, "This is our deleted user")
+}
+
+func WriteJSON(w http.ResponseWriter, status int, a any) error {
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(status)
+
+	return json.NewEncoder(w).Encode(a)
+}
+
+func CreateAccount(w http.ResponseWriter, r *http.Request) error {
+	input := &db.User{}
+	if err := json.NewDecoder(r.Body).Decode(input); err != nil {
+		return err
+	}
+	return WriteJSON(w, http.StatusOK, input)
+}
+
+func GetByIdAccount(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+func UpdateAccount(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+func PartUpdateAccount(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+func DeleteAccount(w http.ResponseWriter, r *http.Request) error {
+	return nil
 }

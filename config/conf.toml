@@ -1,4 +1,4 @@
-host="postgres-db"
+host="postgres-db" 
 port="5432"
 username="postgres"
 pass="12345"
