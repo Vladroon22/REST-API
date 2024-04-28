@@ -4,6 +4,7 @@ build:
 	go build -o ./rest cmd/main/app.go
 
 run: build 
+# 	in configfile -> conf.toml change host = localhost and port = 5430 
 #	sudo docker pull postgres:16.2 
 #	sudo docker run --name=rest_api_db -e POSTGRES_PASSWORD=12345 -p 5430:5432 -d postgres:16.2
 	./rest
@@ -12,7 +13,8 @@ test:
 	go test -v ./tests
 
 up:
-	sudo docker compose -f docker-compose.yml up
+	sudo docker compose -f docker-compose.yml up 
+#	in configfile -> conf.toml change host = postgres-db and port = 5432
 
 tests-in-docker:
 	sudo docker exec -it server sh

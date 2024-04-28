@@ -14,6 +14,15 @@ type User struct {
 	Password         string `json:"pass"`     // open
 }
 
+func CreateNewUser(id int, name, email, password string) *User {
+	return &User{
+		ID:       1,
+		Name:     name,
+		Email:    email,
+		Password: password,
+	}
+}
+
 func (user *User) HashingPass() error {
 	if len(user.Password) > 0 {
 		enc_pass, err := encrypt(user.Password)

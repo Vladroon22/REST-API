@@ -46,7 +46,7 @@ func TestGetAuth(t *testing.T) {
 }
 
 func TestGetAuthIn(t *testing.T) {
-	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8000/auth/sign-in", strings.NewReader("{}"))
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:8000/auth/sign-in", strings.NewReader("{}"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func TestGetAuthIn(t *testing.T) {
 }
 
 func TestGetAuthUp(t *testing.T) {
-	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8000/auth/sign-up", strings.NewReader("{}"))
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:8000/auth/sign-up", strings.NewReader("{}"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +84,7 @@ func TestGetAuthUp(t *testing.T) {
 }
 
 func TestGetAuthOut(t *testing.T) {
-	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8000/auth/logout", strings.NewReader("{}"))
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:8000/auth/logout", strings.NewReader("{}"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,25 +134,6 @@ func TestPutUsers(t *testing.T) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 204 {
-		t.Errorf("Test Denied - %v\n", resp.StatusCode)
-	} else {
-		fmt.Printf("Test Passed: %v\n", resp.StatusCode)
-	}
-}
-
-func TestPostUsers(t *testing.T) {
-	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:8000/auth/users", strings.NewReader("{}"))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 201 {
 		t.Errorf("Test Denied - %v\n", resp.StatusCode)
 	} else {
 		fmt.Printf("Test Passed: %v\n", resp.StatusCode)

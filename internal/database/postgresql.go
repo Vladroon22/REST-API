@@ -22,16 +22,6 @@ func NewDB(conf *config.Config) *DataBase {
 	}
 }
 
-/*
-	type Storage interface {
-		CreateNewUser(user *User) (*User, error)
-		DeleteUser(id int) (*User, error)
-		UpdateUserFully(id int, name, email, pass string) (*User, error)
-		PartUpdateUserName(id int, name string) (*User, error)
-		PartUpdateUserEmail(id int, email string) (*User, error)
-		PartUpdateUserPass(id int, pass string) (*User, error)
-	}
-*/
 func (d *DataBase) ConfigDB() error {
 	if err := d.openDB(*d.config); err != nil {
 		d.logger.Errorln(err)
@@ -62,76 +52,76 @@ func (db *DataBase) CloseDB() {
 	db.sqlDB.Close()
 }
 
-func (db *DataBase) CreateNewUser(user *User) (*User, error) {
+func (db *DataBase) CreateNewUser(user *User) (int, error) {
 	if err := user.Valid(); err != nil {
-		db.logger.Infoln(err)
-		return nil, err
+		db.logger.Errorln(err)
+		return 0, err
 	}
 	if err := user.HashingPass(); err != nil {
 		db.logger.Errorln(err)
-		return nil, err
+		return 0, err
 	}
 	if err := db.sqlDB.QueryRow("INSERT INTO users (username, email, encrypt_password) VALUES ($2, $3, $4) RETURNING id",
 		user.ID, user.Name, user.Email, user.Encrypt_Password,
 	).Scan(&user.ID); err != nil {
 		db.logger.Errorln(err)
-		return nil, err
+		return 0, err
 	}
 
 	db.logger.Infoln("User successfully added")
-	return user, nil
+	return user.ID, nil
 }
 
-func (db *DataBase) DeleteUser(id int) (*User, error) {
+func (db *DataBase) DeleteUser(id int) (int, error) {
 	user := &User{}
 	_, err := db.sqlDB.Exec(
 		"DELETE FROM users WHERE id = $1 RETURNING id, username, email, encrypt_password", id)
 	if err != nil {
 		db.logger.Errorln(err)
-		return nil, err
+		return 0, err
 	}
 
 	db.logger.Infoln("User successfully deleted")
-	return user, nil
+	return user.ID, nil
 }
 
-func (db *DataBase) UpdateUserFully(id int, name, email, pass string) (*User, error) {
+func (db *DataBase) UpdateUserFully(id int, name, email, pass string) (int, error) {
 	user := &User{}
 	_, err := db.sqlDB.Exec(
 		"UPDATE users SET username = $2, email = $3, encrypt_password = $4 WHERE id = $1 RETURNING id, username, email, encrypt_password", name, email, pass, id)
 	if err != nil {
 		db.logger.Errorln(err)
-		return nil, err
+		return 0, err
 	}
 
 	db.logger.Infoln("User successfully updated")
-	return user, nil
+	return user.ID, nil
 }
 
-func (db *DataBase) PartUpdateUserName(id int, name string) (*User, error) {
+func (db *DataBase) PartUpdateUserName(id int, name string) (int, error) {
 	user := &User{}
 	_, err := db.sqlDB.Exec(
 		"UPDATE users SET username = $2 WHERE id = $1 RETURNING id, username", id, name)
 	if err != nil {
 		db.logger.Infoln(err)
-		return nil, err
+		return 0, err
 	}
 
 	db.logger.Infof("Update the User '%d' with his new name '%s'\n", id, name)
-	return user, nil
+	return user.ID, nil
 }
 
-func (db *DataBase) PartUpdateUserEmail(id int, email string) (*User, error) {
+func (db *DataBase) PartUpdateUserEmail(id int, email string) (int, error) {
 	user := &User{}
 	_, err := db.sqlDB.Exec(
 		"UPDATE users SET email = $3 WHERE id = $1 RETURNING id, email", id, email)
 	if err != nil {
 		db.logger.Infoln(err)
-		return nil, err
+		return 0, err
 	}
 
 	db.logger.Infof("Update the User '%d' and new email '%s'\n", id, email)
-	return user, nil
+	return user.ID, nil
 }
 
 func (db *DataBase) PartUpdateUserPass(id int, pass string) (*User, error) {

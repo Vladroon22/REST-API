@@ -42,7 +42,7 @@ func (s *Server) Run() {
 	}
 
 	s.logger.Infoln("Server is listening -->")
-	s.logger.Fatalln(s.server.ListenAndServe())
+	go s.logger.Fatalln(s.server.ListenAndServe())
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
