@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"net/http"
 
 	"github.com/BurntSushi/toml"
 	"github.com/Vladroon22/REST-API/config"
@@ -12,7 +11,6 @@ import (
 )
 
 var (
-	srv        *http.Server
 	pathToToml string
 )
 
@@ -32,9 +30,5 @@ func main() {
 
 	d := db.NewDB(conf)
 
-	if err := d.ConfigDB(); err != nil {
-		logg.Fatalln(err)
-	}
-
-	server.New(conf, logg, srv).Run()
+	server.New(conf, logg, d).Run()
 }

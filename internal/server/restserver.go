@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Vladroon22/REST-API/config"
+	"github.com/Vladroon22/REST-API/internal/database"
 	"github.com/Vladroon22/REST-API/internal/handlers"
 	"github.com/sirupsen/logrus"
 )
@@ -14,20 +15,26 @@ type Server struct {
 	conf   *config.Config
 	logger *logrus.Logger
 	server *http.Server
+	db     *database.DataBase
 }
 
-func New(conf *config.Config, log *logrus.Logger, serv *http.Server) *Server {
+func New(conf *config.Config, log *logrus.Logger, db *database.DataBase) *Server {
 	return &Server{
-		server: serv,
+		server: &http.Server{},
 		conf:   conf,
 		logger: log,
+		db:     db,
 	}
 }
 
 func (s *Server) Run() {
+	if err := s.db.ConfigDB(); err != nil {
+		s.logger.Fatalln(err)
+	}
+
 	s.logger.Infof("Listening: '%s'\n", s.conf.Addr_PORT)
 
-	router := handlers.NewRouter()
+	router := handlers.NewRouter(*s.db)
 	s.logger.Infoln("Created New router")
 
 	router.Pref("/").SayHello()                // <-- logout
@@ -36,13 +43,13 @@ func (s *Server) Run() {
 
 	s.server = &http.Server{
 		Addr:         s.conf.Addr_PORT,
-		Handler:      router.R,
+		Handler:      &router.R,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 
 	s.logger.Infoln("Server is listening -->")
-	go s.logger.Fatalln(s.server.ListenAndServe())
+	s.logger.Fatalln(s.server.ListenAndServe())
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {

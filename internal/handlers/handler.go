@@ -11,21 +11,21 @@ import (
 )
 
 type Router struct {
-	R    *mux.Router
-	logg *logrus.Logger
-	db   *database.DataBase
+	R    mux.Router
+	logg logrus.Logger
+	db   database.DataBase
 }
 
-func NewRouter() *Router {
-	return &Router{
-		R:    mux.NewRouter(),
-		logg: logrus.New(),
-		db:   &database.DataBase{},
+func NewRouter(db database.DataBase) Router {
+	return Router{
+		R:    *mux.NewRouter(),
+		logg: *logrus.New(),
+		db:   db,
 	}
 }
 
 func (r *Router) Pref(path string) *Router {
-	r.R.PathPrefix(path + "/").Handler(http.StripPrefix(path, r.R))
+	r.R.PathPrefix(path + "/").Handler(http.StripPrefix(path, &r.R))
 	return r
 }
 
@@ -50,15 +50,6 @@ func (r *Router) UserEndPoints() {
 func hello(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK) // http_test.go
 	io.WriteString(w, "Welcome to our Web-site!")
-}
-
-func (rout *Router) signUp(w http.ResponseWriter, r *http.Request) { // register
-	/*
-			rout.logg.Errorln("Failed to create new user: ", err.Error())
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		}
-	*/
-	//w.WriteHeader(http.StatusOK) // http_test.go
 }
 
 func (rout *Router) signIn(w http.ResponseWriter, r *http.Request) { // Entry
