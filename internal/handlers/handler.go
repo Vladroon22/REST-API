@@ -86,7 +86,6 @@ func (rout *Router) deleteUser(w http.ResponseWriter, r *http.Request) { // DELE
 	w.WriteHeader(204) // http_test.go
 	io.WriteString(w, "This is our deleted user")
 }
-
 func WriteJSON(w http.ResponseWriter, status int, a interface{}) error {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -95,7 +94,7 @@ func WriteJSON(w http.ResponseWriter, status int, a interface{}) error {
 }
 
 func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
-	user := database.CreateNewUser(1, "vlad", "12345@gmail.com", "12345678")
+	user := &database.User{ID: 5, Name: "vlad", Email: "12345@gmail.com", Password: "12345678"}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		rout.logg.Errorln(err)
 	}
@@ -105,7 +104,7 @@ func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		rout.logg.Errorln(err)
 	}
 
-	rout.logg.Errorln(WriteJSON(w, http.StatusOK, user))
+	WriteJSON(w, http.StatusOK, user)
 }
 
 func GetByIdAccount(w http.ResponseWriter, r *http.Request) error {

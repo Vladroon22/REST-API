@@ -61,7 +61,7 @@ func (db *DataBase) CreateNewUser(user *User) (int, error) {
 		db.logger.Errorln(err)
 		return 0, err
 	}
-	if err := db.sqlDB.QueryRow("INSERT INTO users (username, email, encrypt_password) VALUES ($2, $3, $4) RETURNING id",
+	if err := db.sqlDB.QueryRow("INSERT INTO users (id, username, email, encrypt_password) VALUES ($1, $2, $3, $4) RETURNING id",
 		user.ID, user.Name, user.Email, user.Encrypt_Password,
 	).Scan(&user.ID); err != nil {
 		db.logger.Errorln(err)
@@ -75,7 +75,7 @@ func (db *DataBase) CreateNewUser(user *User) (int, error) {
 func (db *DataBase) DeleteUser(id int) (int, error) {
 	user := &User{}
 	_, err := db.sqlDB.Exec(
-		"DELETE FROM users WHERE id = $1 RETURNING id, username, email, encrypt_password", id)
+		"DELETE FROM users WHERE id = $1 RETURNING id, username = $2, email = $3, encrypt_password = $4", id)
 	if err != nil {
 		db.logger.Errorln(err)
 		return 0, err
@@ -101,7 +101,7 @@ func (db *DataBase) UpdateUserFully(id int, name, email, pass string) (int, erro
 func (db *DataBase) PartUpdateUserName(id int, name string) (int, error) {
 	user := &User{}
 	_, err := db.sqlDB.Exec(
-		"UPDATE users SET username = $2 WHERE id = $1 RETURNING id, username", id, name)
+		"UPDATE users SET username = $2 WHERE id = $1 RETURNING id, username", name, id)
 	if err != nil {
 		db.logger.Infoln(err)
 		return 0, err
@@ -114,7 +114,7 @@ func (db *DataBase) PartUpdateUserName(id int, name string) (int, error) {
 func (db *DataBase) PartUpdateUserEmail(id int, email string) (int, error) {
 	user := &User{}
 	_, err := db.sqlDB.Exec(
-		"UPDATE users SET email = $3 WHERE id = $1 RETURNING id, email", id, email)
+		"UPDATE users SET email = $3 WHERE id = $1 RETURNING id, email", email, id)
 	if err != nil {
 		db.logger.Infoln(err)
 		return 0, err
@@ -127,8 +127,7 @@ func (db *DataBase) PartUpdateUserEmail(id int, email string) (int, error) {
 func (db *DataBase) PartUpdateUserPass(id int, pass string) (*User, error) {
 	user := &User{}
 	_, err := db.sqlDB.Exec(
-		"UPDATE users SET username = $4 WHERE id = $1 RETURNING id, encrypt_password", id, pass,
-	)
+		"UPDATE users SET encrypt_password = $4 WHERE id = $1 RETURNING id, encrypt_password", pass, id)
 	if err != nil {
 		db.logger.Infoln(err)
 		return nil, err
