@@ -7,20 +7,11 @@ import (
 )
 
 type User struct {
-	ID               int    `json:"id"`
+	ID               int    `json:"-"`
 	Name             string `json:"username"`
-	Email            string `json:"email"`
-	Encrypt_Password string `json:"enc_pass"` // secure
-	Password         string `json:"pass"`     // open
-}
-
-func CreateNewUser(id int, name, email, password string) *User {
-	return &User{
-		ID:       1,
-		Name:     name,
-		Email:    email,
-		Password: password,
-	}
+	Email            string `json:"email" binding:"required"`
+	Encrypt_Password string `json:"enc_pass"`                // secure
+	Password         string `json:"pass" binding:"required"` // open
 }
 
 func (user *User) HashingPass() error {

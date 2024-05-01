@@ -94,15 +94,17 @@ func WriteJSON(w http.ResponseWriter, status int, a interface{}) error {
 }
 
 func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
-	user := &database.User{ID: 5, Name: "vlad", Email: "12345@gmail.com", Password: "12345678"}
+	user := &database.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		rout.logg.Errorln(err)
 	}
 
-	_, err := rout.db.CreateNewUser(user)
+	id, err := rout.db.CreateNewUser(user)
 	if err != nil {
 		rout.logg.Errorln(err)
 	}
+
+	user.ID = id
 
 	WriteJSON(w, http.StatusOK, user)
 }
