@@ -97,6 +97,7 @@ func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	user := &database.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		rout.logg.Errorln(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 
 	id, err := rout.db.CreateNewUser(user)
@@ -105,9 +106,7 @@ func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 	user.ID = id
 
-	WriteJSON(w, http.StatusOK, map[string]interface{}{
-		"id": id,
-	})
+	WriteJSON(w, http.StatusOK, user)
 }
 
 func GetByIdAccount(w http.ResponseWriter, r *http.Request) error {
