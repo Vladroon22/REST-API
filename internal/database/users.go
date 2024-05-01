@@ -9,9 +9,9 @@ import (
 type User struct {
 	ID               int    `json:"-"`
 	Name             string `json:"username"`
-	Email            string `json:"email" binding:"required"`
-	Encrypt_Password string `json:"enc_pass"`                // secure
-	Password         string `json:"pass" binding:"required"` // open
+	Email            string `json:"email"`
+	Encrypt_Password string `json:"enc_pass"` // secure
+	Password         string `json:"pass"`     // open
 }
 
 func (user *User) HashingPass() error {
