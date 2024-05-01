@@ -53,6 +53,7 @@ func (db *DataBase) CloseDB() {
 }
 
 func (db *DataBase) CreateNewUser(user *User) (int, error) {
+	var id int
 	if err := user.Valid(); err != nil {
 		db.logger.Errorln(err)
 		return 0, err
@@ -63,13 +64,13 @@ func (db *DataBase) CreateNewUser(user *User) (int, error) {
 	}
 	if err := db.sqlDB.QueryRow("INSERT INTO users (id, username, email, encrypt_password) VALUES ($1, $2, $3, $4) RETURNING id",
 		user.ID, user.Name, user.Email, user.Encrypt_Password,
-	).Scan(&user.ID); err != nil {
+	).Scan(&id); err != nil {
 		db.logger.Errorln(err)
 		return 0, err
 	}
 
 	db.logger.Infoln("User successfully added")
-	return user.ID, nil
+	return id, nil
 }
 
 func (db *DataBase) DeleteUser(id int) (int, error) {

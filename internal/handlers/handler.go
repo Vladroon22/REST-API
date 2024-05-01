@@ -103,10 +103,11 @@ func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		rout.logg.Errorln(err)
 	}
-
 	user.ID = id
 
-	WriteJSON(w, http.StatusOK, user)
+	WriteJSON(w, http.StatusOK, map[string]interface{}{
+		"id": id,
+	})
 }
 
 func GetByIdAccount(w http.ResponseWriter, r *http.Request) error {
