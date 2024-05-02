@@ -28,7 +28,5 @@ func main() {
 		return
 	}
 
-	d := db.NewDB(conf)
-
-	server.New(conf, logg, d).Run()
+	server.New(conf, logg, db.NewDB(conf)).Run()
 }
