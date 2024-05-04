@@ -2,19 +2,24 @@ package database
 
 import (
 	"context"
+	"time"
 )
 
 type repo struct {
-	db *DataBase
+	db      *DataBase
+	timeOut time.Duration
 }
 
 func NewRepo(db *DataBase) *repo {
 	return &repo{
-		db: db,
+		db:      db,
+		timeOut: time.Duration(2) * time.Second,
 	}
 }
 
-func (rp *repo) CreateNewUser(ctx context.Context, user *User) (int, error) {
+func (rp *repo) CreateNewUser(c context.Context, user *User) (int, error) {
+	ctx, cancel := context.WithTimeout(c, rp.timeOut)
+	defer cancel()
 	var id int
 	if err := user.Valid(); err != nil {
 		rp.db.logger.Errorln(err)
@@ -35,10 +40,10 @@ func (rp *repo) CreateNewUser(ctx context.Context, user *User) (int, error) {
 	return id, nil
 }
 
-func (rp *repo) DeleteUser(id int) (int, error) {
+func (rp *repo) DeleteUser(ctx context.Context, id int) (int, error) {
 	user := &User{}
-	_, err := rp.db.sqlDB.Exec(
-		"DELETE FROM clients WHERE id = $1 RETURNING id, username = $2, email = $3, encrypt_password = $4", id)
+	query := "DELETE FROM clients WHERE id = $1 RETURNING id, username = $2, email = $3, encrypt_password = $4"
+	_, err := rp.db.sqlDB.ExecContext(ctx, query, id)
 	if err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
@@ -48,10 +53,10 @@ func (rp *repo) DeleteUser(id int) (int, error) {
 	return user.ID, nil
 }
 
-func (rp *repo) UpdateUserFully(id int, name, email, pass string) (int, error) {
+func (rp *repo) UpdateUserFully(ctx context.Context, id int, name, email, pass string) (int, error) {
 	user := &User{}
-	_, err := rp.db.sqlDB.Exec(
-		"UPDATE clients SET username = $2, email = $3, encrypt_password = $4 WHERE id = $1 RETURNING id, username, email, encrypt_password", name, email, pass, id)
+	query := "UPDATE clients SET username = $2, email = $3, encrypt_password = $4 WHERE id = $1 RETURNING id, username, email, encrypt_password"
+	_, err := rp.db.sqlDB.ExecContext(ctx, query, name, email, pass, id)
 	if err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
@@ -61,10 +66,10 @@ func (rp *repo) UpdateUserFully(id int, name, email, pass string) (int, error) {
 	return user.ID, nil
 }
 
-func (db *DataBase) PartUpdateUserName(id int, name string) (int, error) {
+func (db *DataBase) PartUpdateUserName(ctx context.Context, id int, name string) (int, error) {
 	user := &User{}
-	_, err := db.sqlDB.Exec(
-		"UPDATE clients SET username = $2 WHERE id = $1 RETURNING id, username", name, id)
+	query := "UPDATE clients SET username = $2 WHERE id = $1 RETURNING id, username"
+	_, err := db.sqlDB.ExecContext(ctx, query, name, id)
 	if err != nil {
 		db.logger.Infoln(err)
 		return 0, err
@@ -74,10 +79,10 @@ func (db *DataBase) PartUpdateUserName(id int, name string) (int, error) {
 	return user.ID, nil
 }
 
-func (db *DataBase) PartUpdateUserEmail(id int, email string) (int, error) {
+func (db *DataBase) PartUpdateUserEmail(ctx context.Context, id int, email string) (int, error) {
 	user := &User{}
-	_, err := db.sqlDB.Exec(
-		"UPDATE users SET email = $3 WHERE id = $1 RETURNING id, email", email, id)
+	query := "UPDATE users SET email = $3 WHERE id = $1 RETURNING id, email"
+	_, err := db.sqlDB.ExecContext(ctx, query, email, id)
 	if err != nil {
 		db.logger.Infoln(err)
 		return 0, err
@@ -87,10 +92,10 @@ func (db *DataBase) PartUpdateUserEmail(id int, email string) (int, error) {
 	return user.ID, nil
 }
 
-func (db *DataBase) PartUpdateUserPass(id int, pass string) (int, error) {
+func (db *DataBase) PartUpdateUserPass(ctx context.Context, id int, pass string) (int, error) {
 	user := &User{}
-	_, err := db.sqlDB.Exec(
-		"UPDATE users SET encrypt_password = $4 WHERE id = $1 RETURNING id, encrypt_password", pass, id)
+	query := "UPDATE users SET encrypt_password = $4 WHERE id = $1 RETURNING id, encrypt_password"
+	_, err := db.sqlDB.ExecContext(ctx, query, pass, id)
 	if err != nil {
 		db.logger.Infoln(err)
 		return 0, err
