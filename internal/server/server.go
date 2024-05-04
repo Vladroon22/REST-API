@@ -36,9 +36,9 @@ func (s *Server) Run() {
 	router := database.NewRouter(s.db)
 	s.logger.Infoln("Created New router")
 
-	router.Pref("/").SayHello()                // <-- logout
-	router.Pref("/auth").EndPoints()           // <-- sign-up/sign-in
-	router.Pref("/auth/users").UserEndPoints() // only if reg was success
+	router.Pref("/").SayHello()           // <-- logout
+	router.Pref("/auth").AuthEndPoints()  // <-- sign-up/sign-in
+	router.Pref("/users").UserEndPoints() // only if reg was success
 
 	s.server = &http.Server{
 		Addr:         s.conf.Addr_PORT,

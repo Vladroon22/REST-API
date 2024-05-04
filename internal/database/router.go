@@ -31,18 +31,17 @@ func (r *Router) SayHello() {
 	r.R.HandleFunc("/", hello).Methods("GET")
 }
 
-func (r *Router) EndPoints() {
+func (r *Router) AuthEndPoints() {
 	r.R.HandleFunc("/sign-up", r.CreateAccount).Methods("POST")
 	r.R.HandleFunc("/sign-in", r.signIn).Methods("POST")
-	r.R.HandleFunc("/logout", r.logOut).Methods("POST")
 }
 
 func (r *Router) UserEndPoints() {
-	r.R.HandleFunc("/users", r.getList).Methods("GET")
-	r.R.HandleFunc("/users/{id}", r.getUserByID).Methods("GET")
-	r.R.HandleFunc("/users/{id}", r.updateUser).Methods("PUT")
-	r.R.HandleFunc("/users/{id}", r.partUpdateUser).Methods("PATCH")
-	r.R.HandleFunc("/users/{id}", r.deleteUser).Methods("DELETE")
+	r.R.HandleFunc("/", r.getList).Methods("GET")
+	r.R.HandleFunc("/{id}", r.getUserByID).Methods("GET")
+	r.R.HandleFunc("/{id}", r.updateUser).Methods("PUT")
+	r.R.HandleFunc("/{id}", r.partUpdateUser).Methods("PATCH")
+	r.R.HandleFunc("/{id}", r.deleteUser).Methods("DELETE")
 }
 
 func hello(w http.ResponseWriter, r *http.Request) {
@@ -53,11 +52,6 @@ func hello(w http.ResponseWriter, r *http.Request) {
 func (rout *Router) signIn(w http.ResponseWriter, r *http.Request) { // Entry
 	w.WriteHeader(http.StatusOK) // http_test.go
 	io.WriteString(w, "SignIn was successfully")
-}
-
-func (rout *Router) logOut(w http.ResponseWriter, r *http.Request) { //logOut
-	w.WriteHeader(http.StatusOK) // http_test.go
-	io.WriteString(w, "You have been logout")
 }
 
 func (rout *Router) getList(w http.ResponseWriter, r *http.Request) { // GET
