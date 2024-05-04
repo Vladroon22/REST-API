@@ -15,19 +15,27 @@ type User struct {
 }
 
 func (user *User) HashingPass() error {
-	if len(user.Password) > 0 {
-		enc_pass, err := encrypt(user.Password)
-		if err != nil {
-			return err
-		}
-		user.Encrypt_Password = enc_pass
+	var err error
+	if len(user.Password) <= 0 {
+		return err
+	} else if len(user.Password) > 50 {
+		return err
+	}
+
+	enc_pass, err := encrypt(user.Password)
+	if err != nil {
+		return err
+	}
+	user.Encrypt_Password = enc_pass
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Encrypt_Password), []byte(user.Password)); err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func encrypt(pass string) (string, error) {
-	encrypt, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.MinCost)
+	encrypt, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
 	}

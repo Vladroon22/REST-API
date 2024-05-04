@@ -7,7 +7,6 @@ import (
 
 	"github.com/Vladroon22/REST-API/config"
 	"github.com/Vladroon22/REST-API/internal/database"
-	"github.com/Vladroon22/REST-API/internal/handlers"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,12 +17,12 @@ type Server struct {
 	db     *database.DataBase
 }
 
-func New(conf *config.Config, log *logrus.Logger, db *database.DataBase) *Server {
+func New(conf *config.Config, log *logrus.Logger) *Server {
 	return &Server{
 		server: &http.Server{},
 		conf:   conf,
 		logger: log,
-		db:     db,
+		db:     database.NewDB(conf),
 	}
 }
 
@@ -34,7 +33,7 @@ func (s *Server) Run() {
 
 	s.logger.Infof("Listening: '%s'\n", s.conf.Addr_PORT)
 
-	router := handlers.NewRouter(*s.db)
+	router := database.NewRouter(s.db)
 	s.logger.Infoln("Created New router")
 
 	router.Pref("/").SayHello()                // <-- logout

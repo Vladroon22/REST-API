@@ -1,6 +1,6 @@
 CREATE TABLE clients (
-    id SERIAL PRIMARY KEY UNIQUE INCREMENT NOT NULL,
-    username VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    encrypt_password VARCHAR(255) NOT NULL
+    id serial PRIMARY KEY,
+    username VARCHAR NOT NULL,
+    email VARCHAR NOT NULL,
+    encrypt_password VARCHAR NOT NULL
 );

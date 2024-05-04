@@ -1,11 +1,9 @@
-package handlers
+package database
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 
-	"github.com/Vladroon22/REST-API/internal/database"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
@@ -13,14 +11,14 @@ import (
 type Router struct {
 	R    mux.Router
 	logg logrus.Logger
-	db   database.DataBase
+	rp   *repo
 }
 
-func NewRouter(db database.DataBase) Router {
-	return Router{
+func NewRouter(db *DataBase) *Router {
+	return &Router{
 		R:    *mux.NewRouter(),
 		logg: *logrus.New(),
-		db:   db,
+		rp:   NewRepo(db),
 	}
 }
 
@@ -85,42 +83,4 @@ func (rout *Router) partUpdateUser(w http.ResponseWriter, r *http.Request) { // 
 func (rout *Router) deleteUser(w http.ResponseWriter, r *http.Request) { // DELETE
 	w.WriteHeader(204) // http_test.go
 	io.WriteString(w, "This is our deleted user")
-}
-func WriteJSON(w http.ResponseWriter, status int, a interface{}) error {
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(status)
-
-	return json.NewEncoder(w).Encode(a)
-}
-
-func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
-	user := &database.User{}
-	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
-		rout.logg.Errorln(err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-	}
-
-	id, err := rout.db.CreateNewUser(user)
-	if err != nil {
-		rout.logg.Errorln(err)
-	}
-	user.ID = id
-
-	WriteJSON(w, http.StatusOK, user)
-}
-
-func GetByIdAccount(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
-func UpdateAccount(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
-func PartUpdateAccount(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
-func DeleteAccount(w http.ResponseWriter, r *http.Request) error {
-	return nil
 }
