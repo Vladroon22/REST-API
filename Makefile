@@ -14,7 +14,7 @@ test:
 
 up:
 	sudo docker compose -f docker-compose.yml up 
-#	in configfile -> conf.toml change host = postgres-db and port = 5432
+#	in configfile -> conf.toml change host = postgres-db
 
 tests-in-docker:
 	sudo docker exec -it server sh

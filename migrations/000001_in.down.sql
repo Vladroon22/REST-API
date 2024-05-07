@@ -1,1 +1,3 @@
-DROP TABLE IF EXISTS clients
+-- Active: 1712649823557@@127.0.0.1@5430@rest_api_db
+DROP SEQUENCE IF EXISTS client_id_seq;
+DROP TABLE IF EXISTS clients;
