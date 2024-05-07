@@ -1,4 +1,3 @@
-CREATE SEQUENCE client_id_seq;
 CREATE TABLE clients (
     id INT DEFAULT nextval('client_id_seq') PRIMARY KEY,
     username VARCHAR NOT NULL,
