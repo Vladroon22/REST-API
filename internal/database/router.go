@@ -94,12 +94,14 @@ func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 
-	_, err := rout.rp.CreateNewUser(r.Context(), user)
+	id, err := rout.rp.CreateNewUser(r.Context(), user)
 	if err != nil {
 		rout.logg.Errorln(err)
 	}
 
-	WriteJSON(w, http.StatusOK, user)
+	WriteJSON(w, http.StatusOK, map[string]interface{}{
+		"id": id,
+	})
 }
 
 func GetByIdAccount(w http.ResponseWriter, r *http.Request) error {
