@@ -44,7 +44,7 @@ func (rp *repo) DeleteUser(c context.Context, id int) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
 	user := &User{}
-	query := "DELETE FROM clients WHERE id = $1 RETURNING id, username = $2, email = $3, encrypt_password = $4"
+	query := "DELETE FROM clients WHERE id = $1 RETURNING id"
 	_, err := rp.db.sqlDB.ExecContext(ctx, query, id)
 	if err != nil {
 		rp.db.logger.Errorln(err)
