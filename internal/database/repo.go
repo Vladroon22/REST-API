@@ -29,8 +29,8 @@ func (rp *repo) CreateNewUser(c context.Context, user *User) (int, error) {
 		rp.db.logger.Errorln(err)
 		return 0, err
 	}
-	query := "INSERT INTO clients (id, username, email, encrypt_password) VALUES ($1, $2, $3, $4) RETURNING id"
-	if err := rp.db.sqlDB.QueryRowContext(ctx, query, user.ID, user.Name, user.Email, user.Encrypt_Password).Scan(&id); err != nil {
+	query := "INSERT INTO clients (username, email, encrypt_password) VALUES ($1, $2, $3) RETURNING id"
+	if err := rp.db.sqlDB.QueryRowContext(ctx, query, user.Name, user.Email, user.Encrypt_Password).Scan(&id); err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
 	}

@@ -11,7 +11,7 @@ type User struct {
 	Name             string `json:"username"`
 	Email            string `json:"email"`
 	Encrypt_Password string `json:"enc_pass"` // secure
-	Password         string `json:"pass"`     // open
+	Password         string `json:"pass"`
 }
 
 func (user *User) HashingPass() error {
@@ -43,6 +43,5 @@ func encrypt(pass string) (string, error) {
 }
 
 func (user *User) Valid() error {
-	return validation.ValidateStruct(user, validation.Field(&user.Email, validation.Required, is.Email),
-		validation.Field(&user.Password, validation.Required, validation.Length(8, 50)))
+	return validation.ValidateStruct(user, validation.Field(&user.Email, validation.Required, is.Email), validation.Field(&user.Password, validation.Required))
 }
