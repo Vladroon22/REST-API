@@ -43,7 +43,6 @@ func (rp *repo) CreateNewUser(c context.Context, user *User) (int, error) {
 func (rp *repo) DeleteUser(c context.Context, id int) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
-	user := &User{}
 	query := "DELETE FROM clients WHERE id = $1 RETURNING id"
 	_, err := rp.db.sqlDB.ExecContext(ctx, query, id)
 	if err != nil {
@@ -52,53 +51,81 @@ func (rp *repo) DeleteUser(c context.Context, id int) (int, error) {
 	}
 
 	rp.db.logger.Infoln("User successfully deleted")
-	user.ID = id
 	return id, nil
 }
 
-func (rp *repo) UpdateUserFully(c context.Context, id int, name, email, pass string) (int, error) {
+func (rp *repo) UpdateUserFully(c context.Context, user *User) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
-	user := &User{}
-	query := "UPDATE clients SET username = $2, email = $3, encrypt_password = $4 WHERE id = $1 RETURNING id, username, email, encrypt_password"
-	_, err := rp.db.sqlDB.ExecContext(ctx, query, name, email, pass, id)
+	if err := user.Valid(); err != nil {
+		rp.db.logger.Errorln(err)
+		return 0, err
+	}
+	if err := user.HashingPass(); err != nil {
+		rp.db.logger.Errorln(err)
+		return 0, err
+	}
+
+	query := "UPDATE clients SET username = $2, email = $3, encrypt_password = $4 WHERE id = $1"
+
+	stmt, err := rp.db.sqlDB.PrepareContext(ctx, query)
+	if err != nil {
+		rp.db.logger.Errorln(err)
+		return 0, err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(ctx, user.ID, user.Name, user.Email, user.Encrypt_Password)
 	if err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 
 	rp.db.logger.Infoln("User successfully updated")
-	user.ID = id
-	return id, nil
-}
-
-func (rp *repo) PartUpdateUserName(c context.Context, id int, name string) (int, error) {
-	ctx, cancel := context.WithTimeout(c, rp.timeOut)
-	defer cancel()
-	user := &User{}
-	query := "UPDATE clients SET username = $2 WHERE id = $1 RETURNING id, username"
-	_, err := rp.db.sqlDB.ExecContext(ctx, query, name, id)
-	if err != nil {
-		rp.db.logger.Infoln(err)
-		return 0, err
-	}
-
-	rp.db.logger.Infof("Update the User '%d' with his new name '%s'\n", id, name)
 	return user.ID, nil
 }
 
-func (rp *repo) PartUpdateUserEmail(c context.Context, id int, email string) (int, error) {
+func (rp *repo) PartUpdateUserName(c context.Context, user *User) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
-	user := &User{}
-	query := "UPDATE users SET email = $3 WHERE id = $1 RETURNING id, email"
-	_, err := rp.db.sqlDB.ExecContext(ctx, query, email, id)
+	query := "UPDATE clients SET username = $2 WHERE id = $1 RETURNING id"
+
+	stmt, err := rp.db.sqlDB.PrepareContext(ctx, query)
 	if err != nil {
-		rp.db.logger.Infoln(err)
+		rp.db.logger.Errorln(err)
+		return 0, err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(ctx, user.ID, user.Name)
+	if err != nil {
+		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 
-	rp.db.logger.Infof("Update the User '%d' and new email '%s'\n", id, email)
+	rp.db.logger.Infof("Update the User '%d' with his new name '%s'\n", user.ID, user.Name)
+	return user.ID, nil
+}
+
+func (rp *repo) PartUpdateUserEmail(c context.Context, user *User) (int, error) {
+	ctx, cancel := context.WithTimeout(c, rp.timeOut)
+	defer cancel()
+	query := "UPDATE users SET email = $3 WHERE id = $1 RETURNING id"
+
+	stmt, err := rp.db.sqlDB.PrepareContext(ctx, query)
+	if err != nil {
+		rp.db.logger.Errorln(err)
+		return 0, err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(ctx, user.ID, user.Email)
+	if err != nil {
+		rp.db.logger.Errorln(err)
+		return 0, err
+	}
+
+	rp.db.logger.Infof("Update the User '%d' and new email '%s'\n", user.ID, user.Email)
 	return user.ID, nil
 }
 
