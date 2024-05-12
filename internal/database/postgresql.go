@@ -48,6 +48,6 @@ func (d *DataBase) openDB(conf config.Config) error {
 	return nil
 }
 
-func (db *DataBase) CloseDB() {
-	db.sqlDB.Close()
+func (db *DataBase) CloseDB() error {
+	return db.sqlDB.Close()
 }

@@ -3,6 +3,9 @@ package server
 import (
 	"context"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/Vladroon22/REST-API/config"
@@ -47,10 +50,34 @@ func (s *Server) Run() {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	s.logger.Infoln("Server is listening -->")
-	s.logger.Fatalln(s.server.ListenAndServe())
+	go func() {
+		s.logger.Infoln("Server is listening -->")
+		s.logger.Fatalln(s.server.ListenAndServe())
+	}()
+
+	killSig := make(chan os.Signal, 1)
+	signal.Notify(killSig, syscall.SIGINT, syscall.SIGTERM)
+
+	<-killSig
+
+	go func() {
+		if err := s.Shutdown(context.Background()); err != nil {
+			s.logger.Fatalln(err)
+		}
+	}()
+
 }
 
-func (s *Server) Shutdown(ctx context.Context) error {
-	return s.server.Shutdown(ctx)
+func (s *Server) Shutdown(c context.Context) error {
+	ctx, cancel := context.WithTimeout(c, 3*time.Second)
+	defer cancel()
+	if err := s.db.CloseDB(); err != nil {
+		s.logger.Errorln(err)
+		return err
+	}
+	if err := s.server.Shutdown(ctx); err != nil {
+		s.logger.Errorln(err)
+		return err
+	}
+	return nil
 }
