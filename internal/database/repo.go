@@ -43,8 +43,18 @@ func (rp *repo) CreateNewUser(c context.Context, user *User) (int, error) {
 func (rp *repo) DeleteUser(c context.Context, id int) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
+
+	if ok, err := rp.IdExist(ctx, id); ok {
+		return 0, err
+	}
+
 	query := "DELETE FROM clients WHERE id = $1 RETURNING id"
-	_, err := rp.db.sqlDB.ExecContext(ctx, query, id)
+	rows, err := rp.db.sqlDB.ExecContext(ctx, query, id)
+	res, _ := rows.RowsAffected()
+	if res == 0 {
+		rp.db.logger.Infoln("Database is empty")
+		return 0, nil
+	}
 	if err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
@@ -57,6 +67,11 @@ func (rp *repo) DeleteUser(c context.Context, id int) (int, error) {
 func (rp *repo) UpdateUserFully(c context.Context, user *User) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
+
+	if ok, err := rp.IdExist(ctx, user.ID); ok {
+		return 0, err
+	}
+
 	if err := user.Valid(); err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
@@ -75,7 +90,12 @@ func (rp *repo) UpdateUserFully(c context.Context, user *User) (int, error) {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.ExecContext(ctx, user.ID, user.Name, user.Email, user.Encrypt_Password)
+	rows, err := stmt.ExecContext(ctx, user.ID, user.Name, user.Email, user.Encrypt_Password)
+	res, _ := rows.RowsAffected()
+	if res == 0 {
+		rp.db.logger.Infoln("Database is empty")
+		return 0, nil
+	}
 	if err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
@@ -88,6 +108,11 @@ func (rp *repo) UpdateUserFully(c context.Context, user *User) (int, error) {
 func (rp *repo) PartUpdateUserName(c context.Context, user *User) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
+
+	if ok, err := rp.IdExist(ctx, user.ID); ok {
+		return 0, err
+	}
+
 	query := "UPDATE clients SET username = $2 WHERE id = $1 RETURNING id"
 
 	stmt, err := rp.db.sqlDB.PrepareContext(ctx, query)
@@ -97,7 +122,12 @@ func (rp *repo) PartUpdateUserName(c context.Context, user *User) (int, error) {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.ExecContext(ctx, user.ID, user.Name)
+	rows, err := stmt.ExecContext(ctx, user.ID, user.Name)
+	res, _ := rows.RowsAffected()
+	if res == 0 {
+		rp.db.logger.Infoln("Database is empty")
+		return 0, nil
+	}
 	if err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
@@ -110,7 +140,12 @@ func (rp *repo) PartUpdateUserName(c context.Context, user *User) (int, error) {
 func (rp *repo) PartUpdateUserEmail(c context.Context, user *User) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
-	query := "UPDATE users SET email = $3 WHERE id = $1 RETURNING id"
+
+	if ok, err := rp.IdExist(ctx, user.ID); ok {
+		return 0, err
+	}
+
+	query := "UPDATE clients SET email = $2 WHERE id = $1 RETURNING id"
 
 	stmt, err := rp.db.sqlDB.PrepareContext(ctx, query)
 	if err != nil {
@@ -119,7 +154,12 @@ func (rp *repo) PartUpdateUserEmail(c context.Context, user *User) (int, error) 
 	}
 	defer stmt.Close()
 
-	_, err = stmt.ExecContext(ctx, user.ID, user.Email)
+	rows, err := stmt.ExecContext(ctx, user.ID, user.Email)
+	res, _ := rows.RowsAffected()
+	if res == 0 {
+		rp.db.logger.Infoln("Database is empty")
+		return 0, nil
+	}
 	if err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
@@ -129,17 +169,39 @@ func (rp *repo) PartUpdateUserEmail(c context.Context, user *User) (int, error) 
 	return user.ID, nil
 }
 
-func (rp *repo) PartUpdateUserPass(c context.Context, id int, pass string) (int, error) {
+func (rp *repo) PartUpdateUserPass(c context.Context, user *User) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
-	user := &User{}
-	query := "UPDATE users SET encrypt_password = $4 WHERE id = $1 RETURNING id, encrypt_password"
-	_, err := rp.db.sqlDB.ExecContext(ctx, query, pass, id)
+
+	if ok, err := rp.IdExist(ctx, user.ID); ok {
+		return 0, err
+	}
+
+	if err := user.Valid(); err != nil {
+		rp.db.logger.Errorln(err)
+		return 0, err
+	}
+	if err := user.HashingPass(); err != nil {
+		rp.db.logger.Errorln(err)
+		return 0, err
+	}
+
+	query := "UPDATE clients SET encrypt_password = $2 WHERE id = $1 RETURNING id"
+	_, err := rp.db.sqlDB.ExecContext(ctx, query, user.ID, user.Encrypt_Password)
 	if err != nil {
 		rp.db.logger.Infoln(err)
 		return 0, err
 	}
 
-	rp.db.logger.Infof("Update the User '%d' with his new password '%s'\n", id, pass)
+	rp.db.logger.Infof("Update the User '%d' with his new password\n", user.ID)
 	return user.ID, nil
+}
+
+func (rp *repo) IdExist(ctx context.Context, id int) (bool, error) {
+	var exists bool
+	err := rp.db.sqlDB.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM clients WHERE id = $1)", id).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
 }

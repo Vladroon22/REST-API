@@ -102,8 +102,46 @@ func TestPutUsers(t *testing.T) {
 	}
 }
 
-func TestPatchUsers(t *testing.T) {
-	req, err := http.NewRequest(http.MethodPatch, "http://127.0.0.1:8000/users/{1}", strings.NewReader("{}"))
+func TestPatchUserName(t *testing.T) {
+	req, err := http.NewRequest(http.MethodPatch, "http://127.0.0.1:8000/users/{1}/name", strings.NewReader("{}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		t.Errorf("Test Denied - %v\n", resp.StatusCode)
+	} else {
+		fmt.Printf("Test Passed: %v\n", resp.StatusCode)
+	}
+}
+
+func TestPatchUserEmail(t *testing.T) {
+	req, err := http.NewRequest(http.MethodPatch, "http://127.0.0.1:8000/users/{1}/email", strings.NewReader("{}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		t.Errorf("Test Denied - %v\n", resp.StatusCode)
+	} else {
+		fmt.Printf("Test Passed: %v\n", resp.StatusCode)
+	}
+}
+
+func TestPatchUserPass(t *testing.T) {
+	req, err := http.NewRequest(http.MethodPatch, "http://127.0.0.1:8000/users/{1}/pass", strings.NewReader("{}"))
 	if err != nil {
 		t.Fatal(err)
 	}

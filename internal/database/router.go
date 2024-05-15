@@ -39,8 +39,9 @@ func (r *Router) AuthEndPoints() {
 
 func (r *Router) UserEndPoints() {
 	r.R.HandleFunc("/{id}", r.UpdateAccount).Methods("PUT")
-	r.R.HandleFunc("/{id}", r.PartUpdateAccountName).Methods("PATCH")
-	r.R.HandleFunc("/{id}", r.PartUpdateAccountEmail).Methods("PATCH")
+	r.R.HandleFunc("/{id}/name", r.PartUpdateAccountName).Methods("PATCH")
+	r.R.HandleFunc("/{id}/email", r.PartUpdateAccountEmail).Methods("PATCH")
+	r.R.HandleFunc("/{id}/pass", r.PartUpdateAccountPass).Methods("PATCH")
 	r.R.HandleFunc("/{id}", r.DeleteAccount).Methods("DELETE")
 }
 
@@ -170,6 +171,31 @@ func (rout *Router) PartUpdateAccountEmail(w http.ResponseWriter, r *http.Reques
 	}
 
 	id, err := rout.rp.PartUpdateUserEmail(r.Context(), user)
+	if err != nil {
+		rout.logg.Errorln(err)
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, map[string]interface{}{
+		"id": id,
+	})
+}
+
+func (rout *Router) PartUpdateAccountPass(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "PATCH" {
+		rout.logg.Errorln(http.StatusMethodNotAllowed)
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+
+	user := &User{}
+	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
+		rout.logg.Errorln(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	id, err := rout.rp.PartUpdateUserPass(r.Context(), user)
 	if err != nil {
 		rout.logg.Errorln(err)
 		return
