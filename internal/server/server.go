@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -52,7 +53,9 @@ func (s *Server) Run() {
 
 	go func() {
 		s.logger.Infoln("Server is listening -->")
-		s.logger.Fatalln(s.server.ListenAndServe())
+		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			s.logger.Fatalln(err)
+		}
 	}()
 
 	killSig := make(chan os.Signal, 1)
@@ -65,19 +68,27 @@ func (s *Server) Run() {
 			s.logger.Fatalln(err)
 		}
 	}()
-
+	s.logger.Infoln("Graceful shutdown...")
 }
 
 func (s *Server) Shutdown(c context.Context) error {
-	ctx, cancel := context.WithTimeout(c, 3*time.Second)
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+
+	defer wg.Done()
+
+	ctx, cancel := context.WithTimeout(c, 5*time.Second)
 	defer cancel()
+
 	if err := s.db.CloseDB(); err != nil {
-		s.logger.Errorln(err)
 		return err
 	}
 	if err := s.server.Shutdown(ctx); err != nil {
-		s.logger.Errorln(err)
 		return err
 	}
+
+	wg.Wait()
+
 	return nil
 }
