@@ -6,7 +6,9 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/Vladroon22/REST-API/config"
 	db "github.com/Vladroon22/REST-API/internal/database"
+	"github.com/Vladroon22/REST-API/internal/handlers"
 	"github.com/Vladroon22/REST-API/internal/server"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -33,8 +35,7 @@ func main() {
 		logg.Fatalln(err)
 	}
 
-	repo := repository.NewRepo(db)
-
+	repo := db.NewRepo(DB)
 	router := handlers.NewRouter(repo)
 
 	server.New(conf, logg).Run(router)

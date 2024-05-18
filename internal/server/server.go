@@ -1,15 +1,11 @@
 package server
 
 import (
-	"context"
 	"net/http"
-	"os"
-	"os/signal"
-	"sync"
-	"syscall"
 	"time"
 
 	"github.com/Vladroon22/REST-API/config"
+	"github.com/Vladroon22/REST-API/internal/handlers"
 	"github.com/sirupsen/logrus"
 )
 
@@ -27,9 +23,8 @@ func New(conf *config.Config, log *logrus.Logger) *Server {
 	}
 }
 
-func (s *Server) Run(router handlers.) {
+func (s *Server) Run(router *handlers.Router) {
 	s.logger.Infof("Listening: '%s'\n", s.conf.Addr_PORT)
-
 	s.logger.Infoln("Created New router")
 
 	router.Pref("/").SayHello()           // <-- logout
@@ -49,20 +44,23 @@ func (s *Server) Run(router handlers.) {
 			s.logger.Fatalln(err)
 		}
 	}()
+	/*
+	   killSig := make(chan os.Signal, 1)
+	   signal.Notify(killSig, syscall.SIGINT, syscall.SIGTERM)
 
-	killSig := make(chan os.Signal, 1)
-	signal.Notify(killSig, syscall.SIGINT, syscall.SIGTERM)
+	   <-killSig
 
-	<-killSig
+	   	go func() {
+	   		if err := s.Shutdown(context.Background()); err != nil {
+	   			s.logger.Fatalln(err)
+	   		}
+	   	}()
 
-	go func() {
-		if err := s.Shutdown(context.Background()); err != nil {
-			s.logger.Fatalln(err)
-		}
-	}()
-	s.logger.Infoln("Graceful shutdown...")
+	   s.logger.Infoln("Graceful shutdown...")
+	*/
 }
 
+/*
 func (s *Server) Shutdown(c context.Context) error {
 	var wg sync.WaitGroup
 
@@ -84,3 +82,4 @@ func (s *Server) Shutdown(c context.Context) error {
 
 	return nil
 }
+*/

@@ -1,9 +1,11 @@
-package database
+package handlers
 
 import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	db "github.com/Vladroon22/REST-API/internal/database"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -12,10 +14,10 @@ import (
 type Router struct {
 	R    mux.Router
 	logg logrus.Logger
-	rp   *rep.repo
+	rp   *db.Repo
 }
 
-func NewRouter(rp *rep.repo) *Router {
+func NewRouter(rp *db.Repo) *Router {
 	return &Router{
 		R:    *mux.NewRouter(),
 		logg: *logrus.New(),
@@ -63,13 +65,12 @@ func WriteJSON(w http.ResponseWriter, status int, a interface{}) error {
 }
 
 func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
-	user := &User{}
+	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		rout.logg.Errorln(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-
 	id, err := rout.rp.CreateNewUser(r.Context(), user)
 	if err != nil {
 		rout.logg.Errorln(err)
@@ -88,7 +89,7 @@ func (rout *Router) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := &User{}
+	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		rout.logg.Errorln(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -113,7 +114,7 @@ func (rout *Router) UpdateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := &User{}
+	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		rout.logg.Errorln(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -138,7 +139,7 @@ func (rout *Router) PartUpdateAccountName(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	user := &User{}
+	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		rout.logg.Errorln(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -163,7 +164,7 @@ func (rout *Router) PartUpdateAccountEmail(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	user := &User{}
+	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		rout.logg.Errorln(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -188,7 +189,7 @@ func (rout *Router) PartUpdateAccountPass(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	user := &User{}
+	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		rout.logg.Errorln(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
