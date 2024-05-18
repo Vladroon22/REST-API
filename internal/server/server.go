@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/Vladroon22/REST-API/config"
-	"github.com/Vladroon22/REST-API/internal/database"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,7 +17,6 @@ type Server struct {
 	conf   *config.Config
 	logger *logrus.Logger
 	server *http.Server
-	db     *database.DataBase
 }
 
 func New(conf *config.Config, log *logrus.Logger) *Server {
@@ -26,18 +24,12 @@ func New(conf *config.Config, log *logrus.Logger) *Server {
 		server: &http.Server{},
 		conf:   conf,
 		logger: log,
-		db:     database.NewDB(conf),
 	}
 }
 
-func (s *Server) Run() {
-	if err := s.db.ConfigDB(); err != nil {
-		s.logger.Fatalln(err)
-	}
-
+func (s *Server) Run(router handlers.) {
 	s.logger.Infof("Listening: '%s'\n", s.conf.Addr_PORT)
 
-	router := database.NewRouter(s.db)
 	s.logger.Infoln("Created New router")
 
 	router.Pref("/").SayHello()           // <-- logout

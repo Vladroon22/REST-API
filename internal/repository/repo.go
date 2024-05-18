@@ -6,13 +6,13 @@ import (
 )
 
 type repo struct {
-	db      *DataBase
+	r       *handlers.Router
 	timeOut time.Duration
 }
 
-func NewRepo(db *DataBase) *repo {
+func NewRepo(r *handlers.Router) *repo {
 	return &repo{
-		db:      db,
+		r:       r,
 		timeOut: time.Duration(2) * time.Second,
 	}
 }

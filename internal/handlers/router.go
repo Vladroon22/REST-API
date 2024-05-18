@@ -12,14 +12,14 @@ import (
 type Router struct {
 	R    mux.Router
 	logg logrus.Logger
-	rp   *repo
+	rp   *rep.repo
 }
 
-func NewRouter(db *DataBase) *Router {
+func NewRouter(rp *rep.repo) *Router {
 	return &Router{
 		R:    *mux.NewRouter(),
 		logg: *logrus.New(),
-		rp:   NewRepo(db),
+		rp:   rp,
 	}
 }
 
