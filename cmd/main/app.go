@@ -1,14 +1,21 @@
 package main
 
 import (
+	"context"
 	"flag"
+	"net/http"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/Vladroon22/REST-API/config"
 	db "github.com/Vladroon22/REST-API/internal/database"
 	"github.com/Vladroon22/REST-API/internal/handlers"
 	"github.com/Vladroon22/REST-API/internal/server"
-
+	"github.com/Vladroon22/REST-API/internal/service"
 	"github.com/sirupsen/logrus"
 )
 
@@ -36,7 +43,42 @@ func main() {
 	}
 
 	repo := db.NewRepo(DB)
-	router := handlers.NewRouter(repo)
+	services := service.NewService(repo)
+	router := handlers.NewRouter(services)
 
-	server.New(conf, logg).Run(router)
+	srv := server.New(conf, logg)
+	go func() {
+		if err := srv.Run(router); err != nil || err != http.ErrServerClosed {
+			logg.Fatalln(err)
+		}
+	}()
+
+	killSig := make(chan os.Signal, 1)
+	signal.Notify(killSig, syscall.SIGINT, syscall.SIGTERM)
+
+	<-killSig
+
+	go func() {
+		var wg sync.WaitGroup
+
+		wg.Add(1)
+
+		defer wg.Done()
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := DB.CloseDB(); err != nil {
+			return
+		}
+		if err := srv.Shutdown(ctx); err != nil {
+			return
+		}
+
+		wg.Wait()
+
+	}()
+
+	logg.Infoln("Graceful shutdown...")
+
 }

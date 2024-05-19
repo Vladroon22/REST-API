@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -23,7 +24,7 @@ func New(conf *config.Config, log *logrus.Logger) *Server {
 	}
 }
 
-func (s *Server) Run(router *handlers.Router) {
+func (s *Server) Run(router *handlers.Router) error {
 	s.logger.Infof("Listening: '%s'\n", s.conf.Addr_PORT)
 	s.logger.Infoln("Created New router")
 
@@ -38,48 +39,10 @@ func (s *Server) Run(router *handlers.Router) {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	go func() {
-		s.logger.Infoln("Server is listening -->")
-		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			s.logger.Fatalln(err)
-		}
-	}()
-	/*
-	   killSig := make(chan os.Signal, 1)
-	   signal.Notify(killSig, syscall.SIGINT, syscall.SIGTERM)
-
-	   <-killSig
-
-	   	go func() {
-	   		if err := s.Shutdown(context.Background()); err != nil {
-	   			s.logger.Fatalln(err)
-	   		}
-	   	}()
-
-	   s.logger.Infoln("Graceful shutdown...")
-	*/
+	s.logger.Infoln("Server is listening -->")
+	return s.server.ListenAndServe()
 }
 
-/*
-func (s *Server) Shutdown(c context.Context) error {
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-
-	defer wg.Done()
-
-	ctx, cancel := context.WithTimeout(c, 5*time.Second)
-	defer cancel()
-
-	if err := s.db.CloseDB(); err != nil {
-		return err
-	}
-	if err := s.server.Shutdown(ctx); err != nil {
-		return err
-	}
-
-	wg.Wait()
-
-	return nil
+func (s *Server) Shutdown(ctx context.Context) error {
+	return s.server.Shutdown(ctx)
 }
-*/

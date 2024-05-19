@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	db "github.com/Vladroon22/REST-API/internal/database"
+	"github.com/Vladroon22/REST-API/internal/service"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -14,14 +15,14 @@ import (
 type Router struct {
 	R    mux.Router
 	logg logrus.Logger
-	rp   *db.Repo
+	srv  *service.Service
 }
 
-func NewRouter(rp *db.Repo) *Router {
+func NewRouter(srv *service.Service) *Router {
 	return &Router{
 		R:    *mux.NewRouter(),
 		logg: *logrus.New(),
-		rp:   rp,
+		srv:  srv,
 	}
 }
 
@@ -71,7 +72,7 @@ func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-	id, err := rout.rp.CreateNewUser(r.Context(), user)
+	id, err := rout.srv.CreateNewUser(r.Context(), user)
 	if err != nil {
 		rout.logg.Errorln(err)
 		return
@@ -96,7 +97,7 @@ func (rout *Router) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := rout.rp.DeleteUser(r.Context(), user.ID)
+	id, err := rout.srv.DeleteUser(r.Context(), user.ID)
 	if err != nil {
 		rout.logg.Errorln(err)
 		return
@@ -121,7 +122,7 @@ func (rout *Router) UpdateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := rout.rp.UpdateUserFully(r.Context(), user)
+	id, err := rout.srv.UpdateUserFully(r.Context(), user)
 	if err != nil {
 		rout.logg.Errorln(err)
 		return
@@ -146,7 +147,7 @@ func (rout *Router) PartUpdateAccountName(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	id, err := rout.rp.PartUpdateUserName(r.Context(), user)
+	id, err := rout.srv.PartUpdateUserName(r.Context(), user)
 	if err != nil {
 		rout.logg.Errorln(err)
 		return
@@ -171,7 +172,7 @@ func (rout *Router) PartUpdateAccountEmail(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	id, err := rout.rp.PartUpdateUserEmail(r.Context(), user)
+	id, err := rout.srv.PartUpdateUserEmail(r.Context(), user)
 	if err != nil {
 		rout.logg.Errorln(err)
 		return
@@ -196,7 +197,7 @@ func (rout *Router) PartUpdateAccountPass(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	id, err := rout.rp.PartUpdateUserPass(r.Context(), user)
+	id, err := rout.srv.PartUpdateUserPass(r.Context(), user)
 	if err != nil {
 		rout.logg.Errorln(err)
 		return
