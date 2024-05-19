@@ -42,9 +42,9 @@ func (r *Router) AuthEndPoints() {
 
 func (r *Router) UserEndPoints() {
 	r.R.HandleFunc("/{id}", r.UpdateAccount).Methods("PUT")
-	r.R.HandleFunc("/{id}/name", r.PartUpdateAccountName).Methods("PATCH")
-	r.R.HandleFunc("/{id}/email", r.PartUpdateAccountEmail).Methods("PATCH")
-	r.R.HandleFunc("/{id}/pass", r.PartUpdateAccountPass).Methods("PATCH")
+	r.R.HandleFunc("/name/{id}", r.PartUpdateAccountName).Methods("PATCH")
+	r.R.HandleFunc("/email/{id}", r.PartUpdateAccountEmail).Methods("PATCH")
+	r.R.HandleFunc("/pass/{id}", r.PartUpdateAccountPass).Methods("PATCH")
 	r.R.HandleFunc("/{id}", r.DeleteAccount).Methods("DELETE")
 }
 

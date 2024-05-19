@@ -103,7 +103,7 @@ func TestPutUsers(t *testing.T) {
 }
 
 func TestPatchUserName(t *testing.T) {
-	req, err := http.NewRequest(http.MethodPatch, "http://127.0.0.1:8000/users/{1}/name", strings.NewReader("{}"))
+	req, err := http.NewRequest(http.MethodPatch, "http://127.0.0.1:8000/users/name/{1}", strings.NewReader("{}"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,7 +122,7 @@ func TestPatchUserName(t *testing.T) {
 }
 
 func TestPatchUserEmail(t *testing.T) {
-	req, err := http.NewRequest(http.MethodPatch, "http://127.0.0.1:8000/users/{1}/email", strings.NewReader("{}"))
+	req, err := http.NewRequest(http.MethodPatch, "http://127.0.0.1:8000/users/email/{1}", strings.NewReader("{}"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,7 +141,7 @@ func TestPatchUserEmail(t *testing.T) {
 }
 
 func TestPatchUserPass(t *testing.T) {
-	req, err := http.NewRequest(http.MethodPatch, "http://127.0.0.1:8000/users/{1}/pass", strings.NewReader("{}"))
+	req, err := http.NewRequest(http.MethodPatch, "http://127.0.0.1:8000/users/pass/{1}", strings.NewReader("{}"))
 	if err != nil {
 		t.Fatal(err)
 	}
