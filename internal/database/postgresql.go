@@ -15,10 +15,10 @@ type DataBase struct {
 	sqlDB  *sql.DB
 }
 
-func NewDB(conf *config.Config) *DataBase {
+func NewDB(conf *config.Config, logg *logrus.Logger) *DataBase {
 	return &DataBase{
 		config: conf,
-		logger: logrus.New(),
+		logger: logg,
 	}
 }
 

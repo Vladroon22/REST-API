@@ -37,7 +37,7 @@ func main() {
 		return
 	}
 
-	DB := db.NewDB(conf)
+	DB := db.NewDB(conf, logg)
 	if err := DB.ConfigDB(); err != nil {
 		logg.Fatalln(err)
 	}
