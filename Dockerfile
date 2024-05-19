@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y make
 
 COPY . /REST/
 
+RUN  go mod download
 RUN make 
 
 CMD [ "./rest" ]

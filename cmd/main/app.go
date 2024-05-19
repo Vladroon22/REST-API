@@ -14,7 +14,7 @@ import (
 	"github.com/Vladroon22/REST-API/config"
 	db "github.com/Vladroon22/REST-API/internal/database"
 	"github.com/Vladroon22/REST-API/internal/handlers"
-	"github.com/Vladroon22/REST-API/internal/server"
+	server "github.com/Vladroon22/REST-API/internal/http_server"
 	"github.com/Vladroon22/REST-API/internal/service"
 	"github.com/sirupsen/logrus"
 )
@@ -69,9 +69,11 @@ func main() {
 		defer cancel()
 
 		if err := DB.CloseDB(); err != nil {
+			logg.Errorln(err)
 			return
 		}
 		if err := srv.Shutdown(ctx); err != nil {
+			logg.Errorln(err)
 			return
 		}
 

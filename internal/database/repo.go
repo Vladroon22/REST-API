@@ -3,13 +3,10 @@ package database
 import (
 	"context"
 	"time"
-
-	"github.com/sirupsen/logrus"
 )
 
 type Repo struct {
 	db      *DataBase
-	logger  logrus.Logger
 	timeOut time.Duration
 }
 
@@ -25,20 +22,20 @@ func (rp *Repo) CreateNewUser(c context.Context, user *User) (int, error) {
 	defer cancel()
 	var id int
 	if err := user.Valid(); err != nil {
-		rp.logger.Errorln(err)
+		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 	if err := user.HashingPass(); err != nil {
-		rp.logger.Errorln(err)
+		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 	query := "INSERT INTO clients (username, email, encrypt_password) VALUES ($1, $2, $3) RETURNING id"
 	if err := rp.db.sqlDB.QueryRowContext(ctx, query, user.Name, user.Email, user.Encrypt_Password).Scan(&id); err != nil {
-		rp.logger.Errorln(err)
+		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 
-	rp.logger.Infoln("User successfully added")
+	rp.db.logger.Infoln("User successfully added")
 	user.ID = id
 	return id, nil
 }
@@ -55,15 +52,15 @@ func (rp *Repo) DeleteUser(c context.Context, id int) (int, error) {
 	rows, err := rp.db.sqlDB.ExecContext(ctx, query, id)
 	res, _ := rows.RowsAffected()
 	if res == 0 {
-		rp.logger.Infoln("Database is empty")
+		rp.db.logger.Infoln("Database is empty")
 		return 0, nil
 	}
 	if err != nil {
-		rp.logger.Errorln(err)
+		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 
-	rp.logger.Infoln("User successfully deleted")
+	rp.db.logger.Infoln("User successfully deleted")
 	return id, nil
 }
 
@@ -76,11 +73,11 @@ func (rp *Repo) UpdateUserFully(c context.Context, user *User) (int, error) {
 	}
 
 	if err := user.Valid(); err != nil {
-		rp.logger.Errorln(err)
+		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 	if err := user.HashingPass(); err != nil {
-		rp.logger.Errorln(err)
+		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 
@@ -88,7 +85,7 @@ func (rp *Repo) UpdateUserFully(c context.Context, user *User) (int, error) {
 
 	stmt, err := rp.db.sqlDB.PrepareContext(ctx, query)
 	if err != nil {
-		rp.logger.Errorln(err)
+		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 	defer stmt.Close()
@@ -96,15 +93,15 @@ func (rp *Repo) UpdateUserFully(c context.Context, user *User) (int, error) {
 	rows, err := stmt.ExecContext(ctx, user.ID, user.Name, user.Email, user.Encrypt_Password)
 	res, _ := rows.RowsAffected()
 	if res == 0 {
-		rp.logger.Infoln("Database is empty")
+		rp.db.logger.Infoln("Database is empty")
 		return 0, nil
 	}
 	if err != nil {
-		rp.logger.Errorln(err)
+		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 
-	rp.logger.Infoln("User successfully updated")
+	rp.db.logger.Infoln("User successfully updated")
 	return user.ID, nil
 }
 
@@ -120,7 +117,7 @@ func (rp *Repo) PartUpdateUserName(c context.Context, user *User) (int, error) {
 
 	stmt, err := rp.db.sqlDB.PrepareContext(ctx, query)
 	if err != nil {
-		rp.logger.Errorln(err)
+		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 	defer stmt.Close()
@@ -128,15 +125,15 @@ func (rp *Repo) PartUpdateUserName(c context.Context, user *User) (int, error) {
 	rows, err := stmt.ExecContext(ctx, user.ID, user.Name)
 	res, _ := rows.RowsAffected()
 	if res == 0 {
-		rp.logger.Infoln("Database is empty")
+		rp.db.logger.Infoln("Database is empty")
 		return 0, nil
 	}
 	if err != nil {
-		rp.logger.Errorln(err)
+		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 
-	rp.logger.Infof("Update the User '%d' with his new name '%s'\n", user.ID, user.Name)
+	rp.db.logger.Infof("Update the User '%d' with his new name '%s'\n", user.ID, user.Name)
 	return user.ID, nil
 }
 
@@ -152,7 +149,7 @@ func (rp *Repo) PartUpdateUserEmail(c context.Context, user *User) (int, error) 
 
 	stmt, err := rp.db.sqlDB.PrepareContext(ctx, query)
 	if err != nil {
-		rp.logger.Errorln(err)
+		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 	defer stmt.Close()
@@ -160,15 +157,15 @@ func (rp *Repo) PartUpdateUserEmail(c context.Context, user *User) (int, error) 
 	rows, err := stmt.ExecContext(ctx, user.ID, user.Email)
 	res, _ := rows.RowsAffected()
 	if res == 0 {
-		rp.logger.Infoln("Database is empty")
+		rp.db.logger.Infoln("Database is empty")
 		return 0, nil
 	}
 	if err != nil {
-		rp.logger.Errorln(err)
+		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 
-	rp.logger.Infof("Update the User '%d' and new email '%s'\n", user.ID, user.Email)
+	rp.db.logger.Infof("Update the User '%d' and new email '%s'\n", user.ID, user.Email)
 	return user.ID, nil
 }
 
@@ -181,22 +178,22 @@ func (rp *Repo) PartUpdateUserPass(c context.Context, user *User) (int, error) {
 	}
 
 	if err := user.Valid(); err != nil {
-		rp.logger.Errorln(err)
+		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 	if err := user.HashingPass(); err != nil {
-		rp.logger.Errorln(err)
+		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 
 	query := "UPDATE clients SET encrypt_password = $2 WHERE id = $1 RETURNING id"
 	_, err := rp.db.sqlDB.ExecContext(ctx, query, user.ID, user.Encrypt_Password)
 	if err != nil {
-		rp.logger.Infoln(err)
+		rp.db.logger.Infoln(err)
 		return 0, err
 	}
 
-	rp.logger.Infof("Update the User '%d' with his new password\n", user.ID)
+	rp.db.logger.Infof("Update the User '%d' with his new password\n", user.ID)
 	return user.ID, nil
 }
 

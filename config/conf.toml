@@ -3,6 +3,6 @@ port="5430"
 username="postgres"
 pass="12345"
 sslmode="sslmode=disable"
-dbname="rest_api_db"
+dbname="postgres"
 
 addr_port = "127.0.0.1:8000"
