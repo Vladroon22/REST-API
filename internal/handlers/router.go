@@ -18,6 +18,11 @@ type Router struct {
 	srv  *service.Service
 }
 
+type UserInput struct {
+	Email    string `json:"email"`
+	Password string `json:"pass"`
+}
+
 func NewRouter(srv *service.Service) *Router {
 	return &Router{
 		R:    *mux.NewRouter(),
@@ -54,8 +59,17 @@ func hello(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rout *Router) signIn(w http.ResponseWriter, r *http.Request) { // Entry
-	w.WriteHeader(http.StatusOK) // http_test.go
-	io.WriteString(w, "SignIn was successfully")
+	var input UserInput
+
+	token, err := rout.srv.Accounts.GenerateJWT(input.Email, input.Password)
+	if err != nil {
+		rout.logg.Errorln(err)
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, map[string]interface{}{
+		"token": token,
+	})
 }
 
 func WriteJSON(w http.ResponseWriter, status int, a interface{}) error {
@@ -72,7 +86,7 @@ func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-	id, err := rout.srv.CreateNewUser(r.Context(), user)
+	id, err := rout.srv.Accounts.CreateNewUser(r.Context(), user)
 	if err != nil {
 		rout.logg.Errorln(err)
 		return
@@ -97,7 +111,7 @@ func (rout *Router) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := rout.srv.DeleteUser(r.Context(), user.ID)
+	id, err := rout.srv.Accounts.DeleteUser(r.Context(), user.ID)
 	if err != nil {
 		rout.logg.Errorln(err)
 		return
@@ -122,7 +136,7 @@ func (rout *Router) UpdateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := rout.srv.UpdateUserFully(r.Context(), user)
+	id, err := rout.srv.Accounts.UpdateUserFully(r.Context(), user)
 	if err != nil {
 		rout.logg.Errorln(err)
 		return
@@ -147,7 +161,7 @@ func (rout *Router) PartUpdateAccountName(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	id, err := rout.srv.PartUpdateUserName(r.Context(), user)
+	id, err := rout.srv.Accounts.PartUpdateUserName(r.Context(), user)
 	if err != nil {
 		rout.logg.Errorln(err)
 		return
@@ -172,7 +186,7 @@ func (rout *Router) PartUpdateAccountEmail(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	id, err := rout.srv.PartUpdateUserEmail(r.Context(), user)
+	id, err := rout.srv.Accounts.PartUpdateUserEmail(r.Context(), user)
 	if err != nil {
 		rout.logg.Errorln(err)
 		return
@@ -197,7 +211,7 @@ func (rout *Router) PartUpdateAccountPass(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	id, err := rout.srv.PartUpdateUserPass(r.Context(), user)
+	id, err := rout.srv.Accounts.PartUpdateUserPass(r.Context(), user)
 	if err != nil {
 		rout.logg.Errorln(err)
 		return

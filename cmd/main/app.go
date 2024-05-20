@@ -14,7 +14,7 @@ import (
 	"github.com/Vladroon22/REST-API/config"
 	db "github.com/Vladroon22/REST-API/internal/database"
 	"github.com/Vladroon22/REST-API/internal/handlers"
-	server "github.com/Vladroon22/REST-API/internal/http_server"
+	server "github.com/Vladroon22/REST-API/internal/server"
 	"github.com/Vladroon22/REST-API/internal/service"
 	"github.com/sirupsen/logrus"
 )

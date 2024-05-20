@@ -33,10 +33,11 @@ func (s *Server) Run(router *handlers.Router) error {
 	router.Pref("/users").UserEndPoints() // <-- only if sign-up/sign-in was success
 
 	s.server = &http.Server{
-		Addr:         s.conf.Addr_PORT,
-		Handler:      &router.R,
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+		Addr:           s.conf.Addr_PORT,
+		Handler:        &router.R,
+		MaxHeaderBytes: 1 << 20,
+		WriteTimeout:   15 * time.Second,
+		ReadTimeout:    15 * time.Second,
 	}
 
 	s.logger.Infoln("Server is listening -->")

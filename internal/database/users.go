@@ -15,6 +15,10 @@ type User struct {
 }
 
 func (user *User) HashingPass() error {
+	if err := user.Valid(); err != nil {
+		return err
+	}
+
 	var err error
 	if len(user.Password) <= 0 {
 		return err

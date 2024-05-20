@@ -3,6 +3,8 @@ package database
 import (
 	"context"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 type Repo struct {
@@ -21,10 +23,6 @@ func (rp *Repo) CreateNewUser(c context.Context, user *User) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
 	var id int
-	if err := user.Valid(); err != nil {
-		rp.db.logger.Errorln(err)
-		return 0, err
-	}
 	if err := user.HashingPass(); err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
@@ -72,10 +70,6 @@ func (rp *Repo) UpdateUserFully(c context.Context, user *User) (int, error) {
 		return 0, err
 	}
 
-	if err := user.Valid(); err != nil {
-		rp.db.logger.Errorln(err)
-		return 0, err
-	}
 	if err := user.HashingPass(); err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
@@ -177,10 +171,6 @@ func (rp *Repo) PartUpdateUserPass(c context.Context, user *User) (int, error) {
 		return 0, err
 	}
 
-	if err := user.Valid(); err != nil {
-		rp.db.logger.Errorln(err)
-		return 0, err
-	}
 	if err := user.HashingPass(); err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
@@ -197,9 +187,43 @@ func (rp *Repo) PartUpdateUserPass(c context.Context, user *User) (int, error) {
 	return user.ID, nil
 }
 
+func (rp *Repo) GenerateJWT(email, pass string) (string, error) {
+	user, err := rp.GetUser(email, pass)
+	if err != nil {
+		rp.db.logger.Errorln(err)
+		return "", err
+	}
+
+	if err := user.HashingPass(); err != nil {
+		rp.db.logger.Errorln(err)
+		return "", err
+	}
+
+	JWT := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.StandardClaims{
+		ExpiresAt: time.Now().Add(1 * time.Hour).Unix(), // TTL of token
+		IssuedAt:  time.Now().Unix(),
+	})
+
+	return JWT.SignedString([]byte("jcuznys^N$74mc8o#9,eijf"))
+}
+
+func (rp *Repo) GetUser(email, pass string) (*User, error) {
+	var id int
+	user := &User{}
+	query := "SELECT id FROM clients WHERE email = $1 AND encrypt_password = $2"
+	rows, err := rp.db.sqlDB.Query(query, email, pass)
+	if err != nil {
+		return nil, err
+	}
+	rows.Scan(id)
+	user.ID = id
+	return user, nil
+}
+
 func (rp *Repo) IdExist(ctx context.Context, id int) (bool, error) {
 	var exists bool
-	err := rp.db.sqlDB.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM clients WHERE id = $1)", id).Scan(&exists)
+	query := "SELECT id FROM clients WHERE id = $1"
+	err := rp.db.sqlDB.QueryRowContext(ctx, query, id).Scan(&exists)
 	if err != nil {
 		return false, err
 	}
