@@ -44,7 +44,7 @@ func (rp *Repo) DeleteUser(c context.Context, id int) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
 
-	if ok, err := rp.IdExist(ctx, id); ok {
+	if ok, err := rp.IdExist(ctx, id); !ok || err != nil {
 		return 0, err
 	}
 
