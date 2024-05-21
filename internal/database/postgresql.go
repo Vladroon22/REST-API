@@ -1,10 +1,10 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/Vladroon22/REST-API/config"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 )
@@ -12,7 +12,7 @@ import (
 type DataBase struct {
 	logger *logrus.Logger
 	config *config.Config
-	sqlDB  *sql.DB
+	sqlDB  *sqlx.DB
 }
 
 func NewDB(conf *config.Config, logg *logrus.Logger) *DataBase {
@@ -32,7 +32,7 @@ func (d *DataBase) ConfigDB() error {
 
 func (d *DataBase) openDB(conf config.Config) error {
 	str := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?%s", conf.Username, conf.Password, conf.Host, conf.Port, conf.DBname, conf.SSLmode)
-	db, err := sql.Open("postgres", str)
+	db, err := sqlx.Open("postgres", str)
 	d.logger.Infoln(str)
 	if err != nil {
 		d.logger.Errorln(err)

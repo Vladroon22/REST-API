@@ -66,7 +66,7 @@ func (rp *Repo) UpdateUserFully(c context.Context, user *User) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
 
-	if ok, err := rp.IdExist(ctx, user.ID); ok || err != nil {
+	if ok, err := rp.IdExist(ctx, user.ID); !ok || err != nil {
 		return 0, err
 	}
 
