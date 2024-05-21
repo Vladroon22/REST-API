@@ -42,7 +42,7 @@ func (rp *Repo) DeleteUser(c context.Context, id int) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
 
-	if ok, err := rp.IdExist(ctx, id); !ok || err != nil {
+	if _, err := rp.IdExist(ctx, id); err != nil {
 		return 0, err
 	}
 
@@ -66,7 +66,7 @@ func (rp *Repo) UpdateUserFully(c context.Context, user *User) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
 
-	if ok, err := rp.IdExist(ctx, user.ID); !ok || err != nil {
+	if _, err := rp.IdExist(ctx, user.ID); err != nil {
 		return 0, err
 	}
 
@@ -103,7 +103,7 @@ func (rp *Repo) PartUpdateUserName(c context.Context, user *User) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
 
-	if ok, err := rp.IdExist(ctx, user.ID); !ok || err != nil {
+	if _, err := rp.IdExist(ctx, user.ID); err != nil {
 		return 0, err
 	}
 
@@ -135,7 +135,7 @@ func (rp *Repo) PartUpdateUserEmail(c context.Context, user *User) (int, error) 
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
 
-	if ok, err := rp.IdExist(ctx, user.ID); !ok || err != nil {
+	if _, err := rp.IdExist(ctx, user.ID); err != nil {
 		return 0, err
 	}
 
@@ -167,7 +167,7 @@ func (rp *Repo) PartUpdateUserPass(c context.Context, user *User) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
 
-	if ok, err := rp.IdExist(ctx, user.ID); !ok || err != nil {
+	if _, err := rp.IdExist(ctx, user.ID); err != nil {
 		return 0, err
 	}
 
@@ -208,24 +208,22 @@ func (rp *Repo) GenerateJWT(email, pass string) (string, error) {
 }
 
 func (rp *Repo) GetUser(email, pass string) (*User, error) {
-	var id int
 	user := &User{}
 	query := "SELECT id FROM clients WHERE email = $1 AND encrypt_password = $2"
-	rows, err := rp.db.sqlDB.Query(query, email, pass)
+	err := rp.db.sqlDB.Get(user, query, email, pass)
 	if err != nil {
 		return nil, err
 	}
-	rows.Scan(id)
-	user.ID = id
+
 	return user, nil
 }
 
-func (rp *Repo) IdExist(ctx context.Context, id int) (bool, error) {
-	var exists bool
+func (rp *Repo) IdExist(ctx context.Context, id int) (int, error) {
+	var ID int
 	query := "SELECT id FROM clients WHERE id = $1"
-	err := rp.db.sqlDB.QueryRowContext(ctx, query, id).Scan(&exists)
+	err := rp.db.sqlDB.Get(ID, query, id)
 	if err != nil {
-		return false, err
+		return 0, err
 	}
-	return exists, nil
+	return ID, nil
 }

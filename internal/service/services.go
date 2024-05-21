@@ -15,7 +15,7 @@ type Accounts interface {
 	PartUpdateUserPass(c context.Context, user *db.User) (int, error)
 	GenerateJWT(email, pass string) (string, error)
 	GetUser(email, pass string) (*db.User, error)
-	IdExist(ctx context.Context, id int) (bool, error)
+	IdExist(ctx context.Context, id int) (int, error)
 }
 
 type Service struct {
