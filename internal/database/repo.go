@@ -218,7 +218,7 @@ func (rp *Repo) GetUser(email, pass string) (*User, error) {
 func (rp *Repo) IdExist(ctx context.Context, id int) (int, error) {
 	var ID int
 	query := "SELECT id FROM clients WHERE id = $1"
-	err := rp.db.sqlDB.Get(ID, query, id)
+	err := rp.db.sqlDB.Get(&ID, query, id)
 	if err != nil {
 		return 0, err
 	}

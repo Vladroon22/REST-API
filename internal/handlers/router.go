@@ -61,9 +61,20 @@ func hello(w http.ResponseWriter, r *http.Request) {
 func (rout *Router) signIn(w http.ResponseWriter, r *http.Request) { // Entry
 	var input UserInput
 
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		rout.logg.Errorln(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
 	token, err := rout.srv.Accounts.GenerateJWT(input.Email, input.Password)
 	if err != nil {
 		rout.logg.Errorln(err)
+		return
+	}
+
+	if token == "" {
+		http.Error(w, "User not found in db or wrong input data", http.StatusUnauthorized)
 		return
 	}
 
