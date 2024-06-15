@@ -19,13 +19,13 @@ test:
 up:
 	sudo docker compose -f docker-compose.yml up 
 
-tests-in-docker:
-	sudo docker exec -it server sh
+check-db:
+	sudo docker exec -it rest_api_db sh
 #	make test
 
 docker-rm:
 	sudo docker rm -f server
-	sudo docker rm -f postgres
+	sudo docker rm -f rest_api_db
 docker-rmi:
 	sudo docker rmi rest-api-server
 	sudo docker rmi postgres:16.2
