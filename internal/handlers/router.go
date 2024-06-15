@@ -63,21 +63,18 @@ func (rout *Router) signIn(w http.ResponseWriter, r *http.Request) { // Entry
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
 		return
 	}
 
 	token, err := rout.srv.Accounts.GenerateJWT(input.Email, input.Password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{"error": err.Error()})
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		rout.logg.Errorln(err)
 		return
 	}
 	if token == "" {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-		WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{"token": token})
 		rout.logg.Errorln(err)
 		return
 	}
@@ -98,7 +95,6 @@ func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
 		return
 	}
@@ -106,7 +102,6 @@ func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	id, err := rout.srv.Accounts.CreateNewUser(r.Context(), user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
 		return
 	}
@@ -119,7 +114,6 @@ func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
 func (rout *Router) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "DELETE" {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		WriteJSON(w, http.StatusMethodNotAllowed, map[string]interface{}{"status": http.StatusMethodNotAllowed})
 		rout.logg.Errorln(http.StatusMethodNotAllowed)
 		return
 	}
@@ -127,7 +121,6 @@ func (rout *Router) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
 		return
 	}
@@ -135,7 +128,6 @@ func (rout *Router) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	id, err := rout.srv.Accounts.DeleteUser(r.Context(), user.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
 		return
 	}
@@ -148,7 +140,6 @@ func (rout *Router) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 func (rout *Router) UpdateAccount(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "PUT" {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		WriteJSON(w, http.StatusMethodNotAllowed, map[string]interface{}{"status": http.StatusMethodNotAllowed})
 		rout.logg.Errorln(http.StatusMethodNotAllowed)
 		return
 	}
@@ -156,7 +147,6 @@ func (rout *Router) UpdateAccount(w http.ResponseWriter, r *http.Request) {
 	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
 		return
 	}
@@ -164,7 +154,6 @@ func (rout *Router) UpdateAccount(w http.ResponseWriter, r *http.Request) {
 	id, err := rout.srv.Accounts.UpdateUserFully(r.Context(), user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
 		return
 	}
@@ -177,7 +166,6 @@ func (rout *Router) UpdateAccount(w http.ResponseWriter, r *http.Request) {
 func (rout *Router) PartUpdateAccountName(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "PATCH" {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		WriteJSON(w, http.StatusMethodNotAllowed, map[string]interface{}{"status": http.StatusMethodNotAllowed})
 		rout.logg.Errorln(http.StatusMethodNotAllowed)
 		return
 	}
@@ -185,7 +173,6 @@ func (rout *Router) PartUpdateAccountName(w http.ResponseWriter, r *http.Request
 	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		WriteJSON(w, http.StatusMethodNotAllowed, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
 		return
 	}
@@ -193,7 +180,6 @@ func (rout *Router) PartUpdateAccountName(w http.ResponseWriter, r *http.Request
 	id, err := rout.srv.Accounts.PartUpdateUserName(r.Context(), user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
 		return
 	}
@@ -206,7 +192,6 @@ func (rout *Router) PartUpdateAccountName(w http.ResponseWriter, r *http.Request
 func (rout *Router) PartUpdateAccountEmail(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "PATCH" {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		WriteJSON(w, http.StatusMethodNotAllowed, map[string]interface{}{"status": http.StatusMethodNotAllowed})
 		rout.logg.Errorln(http.StatusMethodNotAllowed)
 		return
 	}
@@ -214,7 +199,6 @@ func (rout *Router) PartUpdateAccountEmail(w http.ResponseWriter, r *http.Reques
 	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
 		return
 	}
@@ -222,7 +206,6 @@ func (rout *Router) PartUpdateAccountEmail(w http.ResponseWriter, r *http.Reques
 	id, err := rout.srv.Accounts.PartUpdateUserEmail(r.Context(), user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
 		return
 	}
@@ -242,7 +225,6 @@ func (rout *Router) PartUpdateAccountPass(w http.ResponseWriter, r *http.Request
 	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
 		return
 	}
@@ -250,7 +232,6 @@ func (rout *Router) PartUpdateAccountPass(w http.ResponseWriter, r *http.Request
 	id, err := rout.srv.Accounts.PartUpdateUserPass(r.Context(), user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
 		return
 	}
