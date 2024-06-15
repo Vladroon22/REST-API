@@ -62,8 +62,9 @@ func (rout *Router) signIn(w http.ResponseWriter, r *http.Request) { // Entry
 	var input UserInput
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
@@ -96,7 +97,8 @@ func WriteJSON(w http.ResponseWriter, status int, a interface{}) error {
 func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
 		return
 	}
@@ -183,7 +185,7 @@ func (rout *Router) PartUpdateAccountName(w http.ResponseWriter, r *http.Request
 	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		WriteJSON(w, http.StatusMethodNotAllowed, map[string]interface{}{"status": http.StatusMethodNotAllowed})
+		WriteJSON(w, http.StatusMethodNotAllowed, map[string]interface{}{"error": err.Error()})
 		rout.logg.Errorln(err)
 		return
 	}
