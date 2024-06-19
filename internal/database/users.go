@@ -38,6 +38,13 @@ func (user *User) HashingPass() error {
 	return nil
 }
 
+func CmpHashAndPass(hash, pass string) error {
+	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(pass)); err != nil {
+		return err
+	}
+	return nil
+}
+
 func encrypt(pass string) (string, error) {
 	encrypt, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	if err != nil {

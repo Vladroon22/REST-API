@@ -67,7 +67,7 @@ func (rout *Router) signIn(w http.ResponseWriter, r *http.Request) { // Entry
 		return
 	}
 
-	token, err := rout.srv.Accounts.GenerateJWT(input.Email, input.Password)
+	token, err := rout.srv.Accounts.GenerateJWT(r.Context(), input.Email, input.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		rout.logg.Errorln(err)

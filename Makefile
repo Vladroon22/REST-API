@@ -21,7 +21,7 @@ up:
 
 check-db:
 	sudo docker exec -it rest_api_db sh
-#	make test
+#	psql -U postgres
 
 docker-rm:
 	sudo docker rm -f server

@@ -1,7 +1,9 @@
 package database
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/Vladroon22/REST-API/config"
 	"github.com/jmoiron/sqlx"
@@ -32,7 +34,9 @@ func (d *DataBase) ConfigDB() error {
 
 func (d *DataBase) openDB(conf config.Config) error {
 	str := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?%s", conf.Username, conf.Password, conf.Host, conf.Port, conf.DBname, conf.SSLmode)
-	db, err := sqlx.Open("postgres", str)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	db, err := sqlx.ConnectContext(ctx, "postgres", str)
 	d.logger.Infoln(str)
 	if err != nil {
 		d.logger.Errorln(err)

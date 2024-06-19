@@ -187,14 +187,32 @@ func (rp *Repo) PartUpdateUserPass(c context.Context, user *User) (int, error) {
 	return user.ID, nil
 }
 
-func (rp *Repo) GenerateJWT(email, pass string) (string, error) {
-	user, err := rp.GetUser(email, pass)
+func (rp *Repo) GenerateJWT(c context.Context, email, pass string) (string, error) {
+	ctx, cancel := context.WithTimeout(c, rp.timeOut)
+	defer cancel()
+	/*	user, err := rp.GetUser(email, pass)
+		if err != nil {
+			rp.db.logger.Errorln(err)
+			return "", err
+		}*/
+	user := &User{}
+	//	query := "SELECT * FROM clients WHERE email = $1 AND encrypt_password = $2"
+	//	err := rp.db.sqlDB.QueryRowContext(ctx, query, email, pass).Scan(&user)
+	query := "SELECT id, email, encrypt_password FROM clients WHERE email = $1 AND encrypt_password = $2"
+	err := rp.db.sqlDB.QueryRowContext(ctx, query, email, pass).Scan(&user.ID, &user.Email, &user.Encrypt_Password)
+
+	rp.db.logger.Infoln(user.ID)
+	rp.db.logger.Infoln(user.Email)
+	rp.db.logger.Infoln(user.Encrypt_Password)
+
+	rp.db.logger.Infoln(email)
+	rp.db.logger.Infoln(pass)
+
 	if err != nil {
-		rp.db.logger.Errorln(err)
 		return "", err
 	}
 
-	if err := user.HashingPass(); err != nil {
+	if err := CmpHashAndPass(user.Encrypt_Password, pass); err != nil {
 		rp.db.logger.Errorln(err)
 		return "", err
 	}
@@ -207,16 +225,20 @@ func (rp *Repo) GenerateJWT(email, pass string) (string, error) {
 	return JWT.SignedString([]byte("jcuznys^N$74mc8o#9,eijf"))
 }
 
-func (rp *Repo) GetUser(email, pass string) (*User, error) {
-	user := &User{}
-	query := "SELECT id FROM clients WHERE email = $1 AND encrypt_password = $2"
-	err := rp.db.sqlDB.Get(user, query, email, pass)
-	if err != nil {
-		return nil, err
-	}
-	return user, nil
-}
+/*
+	func (rp *Repo) GetUser(email, pass string) (*User, error) {
+		user := &User{}
+		query := "SELECT id FROM clients WHERE email = $1 AND encrypt_password = $2"
+		err := rp.db.sqlDB.Get(user, query, email, pass)
+		if err != nil {
+			return nil, err
+		}
+		rp.db.logger.Infoln(user.Email)
+		rp.db.logger.Infoln(user.Encrypt_Password)
 
+		return user, nil
+	}
+*/
 func (rp *Repo) IdExist(ctx context.Context, id int) (int, error) {
 	var ID int
 	query := "SELECT id FROM clients WHERE id = $1"
