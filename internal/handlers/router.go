@@ -13,26 +13,32 @@ import (
 )
 
 type Router struct {
-	R    mux.Router
-	logg logrus.Logger
+	R    *mux.Router
+	logg *logrus.Logger
 	srv  *service.Service
 }
 
-type UserInput struct {
+type AuthInput struct {
+	Email    string `json:"email"`
+	Password string `json:"pass"`
+}
+
+type RegInput struct {
+	Name     string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"pass"`
 }
 
 func NewRouter(srv *service.Service) *Router {
 	return &Router{
-		R:    *mux.NewRouter(),
-		logg: *logrus.New(),
+		R:    mux.NewRouter(),
+		logg: logrus.New(),
 		srv:  srv,
 	}
 }
 
 func (r *Router) Pref(path string) *Router {
-	r.R.PathPrefix(path + "/").Handler(http.StripPrefix(path, &r.R))
+	r.R.PathPrefix(path + "/").Handler(http.StripPrefix(path, r.R))
 	return r
 }
 
@@ -59,7 +65,7 @@ func hello(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rout *Router) signIn(w http.ResponseWriter, r *http.Request) { // Entry
-	var input UserInput
+	var input AuthInput
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -92,14 +98,14 @@ func WriteJSON(w http.ResponseWriter, status int, a interface{}) error {
 }
 
 func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
-	user := &db.User{}
-	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
+	var user RegInput
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		rout.logg.Errorln(err)
 		return
 	}
 
-	id, err := rout.srv.Accounts.CreateNewUser(r.Context(), user)
+	id, err := rout.srv.Accounts.CreateNewUser(r.Context(), user.Name, user.Email, user.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		rout.logg.Errorln(err)

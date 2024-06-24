@@ -7,14 +7,13 @@ import (
 )
 
 type Accounts interface {
-	CreateNewUser(c context.Context, user *db.User) (int, error)
+	CreateNewUser(c context.Context, name, email, pass string) (int, error)
 	DeleteUser(c context.Context, id int) (int, error)
 	UpdateUserFully(c context.Context, user *db.User) (int, error)
 	PartUpdateUserName(c context.Context, user *db.User) (int, error)
 	PartUpdateUserEmail(c context.Context, user *db.User) (int, error)
 	PartUpdateUserPass(c context.Context, user *db.User) (int, error)
 	GenerateJWT(c context.Context, email, pass string) (string, error)
-	//GetUser(email, pass string) (*db.User, error)
 	IdExist(ctx context.Context, id int) (int, error)
 }
 

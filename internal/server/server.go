@@ -25,8 +25,7 @@ func New(conf *config.Config, log *logrus.Logger) *Server {
 }
 
 func (s *Server) Run(router *handlers.Router) error {
-	s.logger.Infof("Listening: '%s'\n", s.conf.Addr_PORT)
-	s.logger.Infoln("Created New router")
+	s.logger.Infoln("Init router")
 
 	router.Pref("/").SayHello()           // <-- logout
 	router.Pref("/auth").AuthEndPoints()  // <-- sign-up/sign-in
@@ -34,13 +33,13 @@ func (s *Server) Run(router *handlers.Router) error {
 
 	s.server = &http.Server{
 		Addr:           s.conf.Addr_PORT,
-		Handler:        &router.R,
+		Handler:        router.R,
 		MaxHeaderBytes: 1 << 20,
 		WriteTimeout:   15 * time.Second,
 		ReadTimeout:    15 * time.Second,
 	}
 
-	s.logger.Infoln("Server is listening -->")
+	s.logger.Infoln("Server is listening -->", s.conf.Addr_PORT)
 	return s.server.ListenAndServe()
 }
 

@@ -2,9 +2,15 @@ package database
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+)
+
+const (
+	singKey = "jcuznys^N$74mc8o#9,eijf"
 )
 
 type Repo struct {
@@ -19,9 +25,19 @@ func NewRepo(db *DataBase) *Repo {
 	}
 }
 
-func (rp *Repo) CreateNewUser(c context.Context, user *User) (int, error) {
+type claims struct {
+	jwt.StandardClaims
+	Id int `json:"id"`
+}
+
+func (rp *Repo) CreateNewUser(c context.Context, name, email, pass string) (int, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
+	user := &User{
+		Name:     name,
+		Email:    email,
+		Password: pass,
+	}
 	var id int
 	if err := user.HashingPass(); err != nil {
 		rp.db.logger.Errorln(err)
@@ -190,16 +206,14 @@ func (rp *Repo) PartUpdateUserPass(c context.Context, user *User) (int, error) {
 func (rp *Repo) GenerateJWT(c context.Context, email, pass string) (string, error) {
 	ctx, cancel := context.WithTimeout(c, rp.timeOut)
 	defer cancel()
-	/*	user, err := rp.GetUser(email, pass)
-		if err != nil {
-			rp.db.logger.Errorln(err)
-			return "", err
-		}*/
+
 	user := &User{}
-	//	query := "SELECT * FROM clients WHERE email = $1 AND encrypt_password = $2"
-	//	err := rp.db.sqlDB.QueryRowContext(ctx, query, email, pass).Scan(&user)
-	query := "SELECT id, email, encrypt_password FROM clients WHERE email = $1 AND encrypt_password = $2"
-	err := rp.db.sqlDB.QueryRowContext(ctx, query, email, pass).Scan(&user.ID, &user.Email, &user.Encrypt_Password)
+	if err := user.HashingPass(); err != nil {
+		rp.db.logger.Errorln(err)
+		return "", err
+	}
+	query := "SELECT id, email, encrypted_password FROM clients WHERE email = $1 AND encrypted_password = $2"
+	err := rp.db.sqlDB.GetContext(ctx, query, user.Email, user.Password)
 
 	rp.db.logger.Infoln(user.ID)
 	rp.db.logger.Infoln(user.Email)
@@ -209,6 +223,9 @@ func (rp *Repo) GenerateJWT(c context.Context, email, pass string) (string, erro
 	rp.db.logger.Infoln(pass)
 
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", err
+		}
 		return "", err
 	}
 
@@ -217,28 +234,17 @@ func (rp *Repo) GenerateJWT(c context.Context, email, pass string) (string, erro
 		return "", err
 	}
 
-	JWT := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.StandardClaims{
-		ExpiresAt: time.Now().Add(1 * time.Hour).Unix(), // TTL of token
-		IssuedAt:  time.Now().Unix(),
+	JWT := jwt.NewWithClaims(jwt.SigningMethodHS256, &claims{
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(5 * time.Hour).Unix(), // TTL of token
+			IssuedAt:  time.Now().Unix(),
+		},
+		user.ID,
 	})
 
-	return JWT.SignedString([]byte("jcuznys^N$74mc8o#9,eijf"))
+	return JWT.SignedString([]byte(singKey))
 }
 
-/*
-	func (rp *Repo) GetUser(email, pass string) (*User, error) {
-		user := &User{}
-		query := "SELECT id FROM clients WHERE email = $1 AND encrypt_password = $2"
-		err := rp.db.sqlDB.Get(user, query, email, pass)
-		if err != nil {
-			return nil, err
-		}
-		rp.db.logger.Infoln(user.Email)
-		rp.db.logger.Infoln(user.Encrypt_Password)
-
-		return user, nil
-	}
-*/
 func (rp *Repo) IdExist(ctx context.Context, id int) (int, error) {
 	var ID int
 	query := "SELECT id FROM clients WHERE id = $1"

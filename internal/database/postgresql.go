@@ -33,10 +33,10 @@ func (d *DataBase) ConfigDB() error {
 }
 
 func (d *DataBase) openDB(conf config.Config) error {
-	str := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?%s", conf.Username, conf.Password, conf.Host, conf.Port, conf.DBname, conf.SSLmode)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	db, err := sqlx.ConnectContext(ctx, "postgres", str)
+	str := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?%s", conf.Username, conf.Password, conf.Host, conf.Port, conf.DBname, conf.SSLmode)
+	db, err := sqlx.ConnectContext(ctx, "postgres", "postgresql://postgres:12345@localhost:5430/postgres?sslmode=disable")
 	d.logger.Infoln(str)
 	if err != nil {
 		d.logger.Errorln(err)

@@ -20,7 +20,7 @@ up:
 	sudo docker compose -f docker-compose.yml up 
 
 check-db:
-	sudo docker exec -it rest_api_db sh
+	sudo docker exec -it postgres sh
 #	psql -U postgres
 
 docker-rm:
