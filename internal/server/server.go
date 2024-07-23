@@ -27,9 +27,9 @@ func New(conf *config.Config, log *logrus.Logger) *Server {
 func (s *Server) Run(router *handlers.Router) error {
 	s.logger.Infoln("Init router")
 
-	router.Pref("/").SayHello()           // <-- logout
-	router.Pref("/auth").AuthEndPoints()  // <-- sign-up/sign-in
-	router.Pref("/users").UserEndPoints() // <-- only if sign-up/sign-in was success
+	router.Pref("/").SayHello()          // <-- logout
+	router.Pref("/auth").AuthEndPoints() // <-- sign-up/sign-in
+	handlers.AuthMiddleWare(router)      // <-- only if sign-in was success
 
 	s.server = &http.Server{
 		Addr:           s.conf.Addr_PORT,

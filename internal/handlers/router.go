@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
+	"time"
 
 	db "github.com/Vladroon22/REST-API/internal/database"
 	"github.com/Vladroon22/REST-API/internal/service"
@@ -52,16 +54,44 @@ func (r *Router) AuthEndPoints() {
 }
 
 func (r *Router) UserEndPoints() {
-	r.R.HandleFunc("/{id}", r.UpdateAccount).Methods("PUT")
-	r.R.HandleFunc("/name/{id}", r.PartUpdateAccountName).Methods("PATCH")
-	r.R.HandleFunc("/email/{id}", r.PartUpdateAccountEmail).Methods("PATCH")
-	r.R.HandleFunc("/pass/{id}", r.PartUpdateAccountPass).Methods("PATCH")
-	r.R.HandleFunc("/{id}", r.DeleteAccount).Methods("DELETE")
+	r.R.HandleFunc("/{id:[0-9]+}", r.UpdateAccount).Methods("PUT")
+	r.R.HandleFunc("/name/{id:[0-9]+}", r.PartUpdateAccountName).Methods("PATCH")
+	r.R.HandleFunc("/email/{id:[0-9]+}", r.PartUpdateAccountEmail).Methods("PATCH")
+	r.R.HandleFunc("/pass/{id:[0-9]+}", r.PartUpdateAccountPass).Methods("PATCH")
+	r.R.HandleFunc("/{id:[0-9]+}", r.DeleteAccount).Methods("DELETE")
 }
 
 func hello(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK) // http_test.go
 	io.WriteString(w, "Welcome to our Web-site!")
+}
+
+func SetCookie(w http.ResponseWriter, r *http.Request, cookieName string, cookies string) {
+	cookie := &http.Cookie{
+		Name:     cookieName,
+		Value:    cookies,
+		Domain:   r.URL.RequestURI(),
+		Secure:   false,
+		HttpOnly: true,
+		Expires:  time.Now().Add(time.Hour),
+	}
+	http.SetCookie(w, cookie)
+}
+
+func AuthMiddleWare(next *Router) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("jwt")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		tokenStr := cookie.Value
+		if tokenStr == "" {
+			http.Error(w, "Invalid token", http.StatusInternalServerError)
+			return
+		}
+		next.Pref("/users").UserEndPoints()
+	}
 }
 
 func (rout *Router) signIn(w http.ResponseWriter, r *http.Request) { // Entry
@@ -80,10 +110,12 @@ func (rout *Router) signIn(w http.ResponseWriter, r *http.Request) { // Entry
 		return
 	}
 	if token == "" {
-		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		http.Error(w, "token is empty", http.StatusUnauthorized)
 		rout.logg.Errorln(err)
 		return
 	}
+
+	SetCookie(w, r, "jwt", token)
 
 	WriteJSON(w, http.StatusOK, map[string]interface{}{
 		"token": token,
@@ -118,20 +150,17 @@ func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rout *Router) DeleteAccount(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "DELETE" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		rout.logg.Errorln(http.StatusMethodNotAllowed)
-		return
-	}
-
 	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		rout.logg.Errorln(err)
 		return
 	}
+	ID := r.PathValue("{id}")
+	userID, _ := strconv.Atoi(ID)
+	rout.logg.Infof("ID: %d", userID)
 
-	id, err := rout.srv.Accounts.DeleteUser(r.Context(), user.ID)
+	id, err := rout.srv.Accounts.DeleteUser(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		rout.logg.Errorln(err)
@@ -144,12 +173,6 @@ func (rout *Router) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rout *Router) UpdateAccount(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "PUT" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		rout.logg.Errorln(http.StatusMethodNotAllowed)
-		return
-	}
-
 	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -170,12 +193,6 @@ func (rout *Router) UpdateAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rout *Router) PartUpdateAccountName(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "PATCH" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		rout.logg.Errorln(http.StatusMethodNotAllowed)
-		return
-	}
-
 	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -196,12 +213,6 @@ func (rout *Router) PartUpdateAccountName(w http.ResponseWriter, r *http.Request
 }
 
 func (rout *Router) PartUpdateAccountEmail(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "PATCH" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		rout.logg.Errorln(http.StatusMethodNotAllowed)
-		return
-	}
-
 	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -222,12 +233,6 @@ func (rout *Router) PartUpdateAccountEmail(w http.ResponseWriter, r *http.Reques
 }
 
 func (rout *Router) PartUpdateAccountPass(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "PATCH" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		rout.logg.Errorln(http.StatusMethodNotAllowed)
-		return
-	}
-
 	user := &db.User{}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
