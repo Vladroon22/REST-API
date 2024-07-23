@@ -42,7 +42,7 @@ func (d *DataBase) openDB(conf config.Config) error {
 		d.logger.Errorln(err)
 		return err
 	}
-	if err := db.Ping(); err != nil {
+	if err := RetryPing(db); err != nil {
 		d.logger.Errorln(err)
 		return err
 	}
@@ -50,6 +50,17 @@ func (d *DataBase) openDB(conf config.Config) error {
 	d.logger.Infoln("Database configurated")
 
 	return nil
+}
+
+func RetryPing(db *sqlx.DB) error {
+	var err error
+	for i := 0; i < 5; i++ {
+		if err := db.Ping(); err == nil {
+			break
+		}
+		time.Sleep(time.Second)
+	}
+	return err
 }
 
 func (db *DataBase) CloseDB() error {

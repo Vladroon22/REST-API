@@ -46,7 +46,7 @@ func (rp *Repo) CreateNewUser(c context.Context, name, email, pass string) (int,
 		return 0, err
 	}
 	var id int
-	query := "INSERT INTO clients (username, email, encrypt_password) VALUES (?, ?, ?) RETURNING id"
+	query := "INSERT INTO clients (username, email, encrypt_password) VALUES ($1, $2, $3) RETURNING id"
 	if err := rp.db.sqlDB.QueryRowContext(ctx, query, user.Name, user.Email, enc_pass).Scan(&id); err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
@@ -65,7 +65,7 @@ func (rp *Repo) DeleteUser(c context.Context, id int) (int, error) {
 		return 0, err
 	}
 
-	query := "DELETE FROM clients WHERE id = ? RETURNING id"
+	query := "DELETE FROM clients WHERE id = $1 RETURNING id"
 	rows, err := rp.db.sqlDB.ExecContext(ctx, query, id)
 	res, _ := rows.RowsAffected()
 	if res == 0 {
@@ -95,7 +95,7 @@ func (rp *Repo) UpdateUserFully(c context.Context, user *User) (int, error) {
 		return 0, err
 	}
 
-	query := "UPDATE clients SET username = ?, email = ?, encrypt_password = ? WHERE id = ?"
+	query := "UPDATE clients SET username = $1 email = $2 encrypt_password = $3 WHERE id = $4"
 
 	stmt, err := rp.db.sqlDB.PrepareContext(ctx, query)
 	if err != nil {
@@ -127,7 +127,7 @@ func (rp *Repo) PartUpdateUserName(c context.Context, user *User) (int, error) {
 		return 0, err
 	}
 
-	query := "UPDATE clients SET username = ? WHERE id = ? RETURNING id"
+	query := "UPDATE clients SET username = $1 WHERE id = $2 RETURNING id"
 
 	stmt, err := rp.db.sqlDB.PrepareContext(ctx, query)
 	if err != nil {
@@ -159,7 +159,7 @@ func (rp *Repo) PartUpdateUserEmail(c context.Context, user *User) (int, error) 
 		return 0, err
 	}
 
-	query := "UPDATE clients SET email = ? WHERE id = ? RETURNING id"
+	query := "UPDATE clients SET email = $1 WHERE id = $2 RETURNING id"
 
 	stmt, err := rp.db.sqlDB.PrepareContext(ctx, query)
 	if err != nil {
@@ -197,7 +197,7 @@ func (rp *Repo) PartUpdateUserPass(c context.Context, user *User) (int, error) {
 		return 0, err
 	}
 
-	query := "UPDATE clients SET encrypt_password = ? WHERE id = ? RETURNING id"
+	query := "UPDATE clients SET encrypt_password = $1 WHERE id = $2 RETURNING id"
 	if _, err := rp.db.sqlDB.ExecContext(ctx, query, user.ID, enc_pass); err != nil {
 		rp.db.logger.Infoln(err)
 		return 0, err
@@ -212,7 +212,7 @@ func (rp *Repo) GenerateJWT(c context.Context, email, pass string) (string, erro
 	defer cancel()
 	var id int
 	var hash string
-	query := "SELECT id encrypt_password FROM clients WHERE email = ?"
+	query := "SELECT id, encrypt_password FROM clients WHERE email = $1"
 	err := rp.db.sqlDB.QueryRowContext(ctx, query, email).Scan(&id, &hash)
 
 	if err != nil {
@@ -242,7 +242,7 @@ func (rp *Repo) IdExist(ctx context.Context, id int) (int, error) {
 	c, cancel := context.WithTimeout(ctx, rp.timeOut)
 	defer cancel()
 	var ID int
-	query := "SELECT id FROM clients WHERE id = ?"
+	query := "SELECT id FROM clients WHERE id = $1"
 	err := rp.db.sqlDB.QueryRowContext(c, query, id).Scan(&ID)
 	if err != nil {
 		return 0, err

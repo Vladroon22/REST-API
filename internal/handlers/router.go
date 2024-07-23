@@ -70,7 +70,7 @@ func SetCookie(w http.ResponseWriter, r *http.Request, cookieName string, cookie
 	cookie := &http.Cookie{
 		Name:     cookieName,
 		Value:    cookies,
-		Domain:   r.URL.RequestURI(),
+		Path:     r.URL.Path,
 		Secure:   false,
 		HttpOnly: true,
 		Expires:  time.Now().Add(time.Hour),
