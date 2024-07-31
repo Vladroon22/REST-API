@@ -1,3 +1,0 @@
-# REST-API in Go
-
-App is in progress...
