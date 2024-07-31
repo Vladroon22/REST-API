@@ -1,0 +1,33 @@
+version: '3.9'
+
+services:
+  server:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: server
+    depends_on:
+      - postgres-db
+    networks:
+      - ps
+    ports:
+      - "8000:8000"
+    tty: true
+    
+  postgres-db: 
+    image: postgres:16.2
+    container_name: rest_api_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: rest_api_db
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - "5430:5432"
+    restart: always
+    networks:
+      - ps
+
+networks:
+  ps:
