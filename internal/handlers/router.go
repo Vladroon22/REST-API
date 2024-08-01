@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -47,19 +48,20 @@ func (r *Router) AuthEndPoints() {
 	r.R.HandleFunc("/sign-in", r.signIn).Methods("POST")
 }
 
-func (r *Router) UserEndPoints() {
-	r.R.HandleFunc("/{id:[0-9]+}", r.UpdateAccount).Methods("PUT")
-	r.R.HandleFunc("/name/{id:[0-9]+}", r.PartUpdateAccountName).Methods("PATCH")
-	r.R.HandleFunc("/email/{id:[0-9]+}", r.PartUpdateAccountEmail).Methods("PATCH")
-	r.R.HandleFunc("/pass/{id:[0-9]+}", r.PartUpdateAccountPass).Methods("PATCH")
-	r.R.HandleFunc("/{id:[0-9]+}", r.DeleteAccount).Methods("DELETE")
+func (r *Router) UserEndPoints(sub *mux.Router) {
+	sub.HandleFunc("/{id:[0-9]+}", r.GetAccount).Methods("GET")
+	sub.HandleFunc("/{id:[0-9]+}", r.UpdateAccount).Methods("PUT")
+	sub.HandleFunc("/name/{id:[0-9]+}", r.PartUpdateAccountName).Methods("PATCH")
+	sub.HandleFunc("/email/{id:[0-9]+}", r.PartUpdateAccountEmail).Methods("PATCH")
+	sub.HandleFunc("/pass/{id:[0-9]+}", r.PartUpdateAccountPass).Methods("PATCH")
+	sub.HandleFunc("/{id:[0-9]+}", r.DeleteAccount).Methods("DELETE")
 }
 
-func SetCookie(w http.ResponseWriter, r *http.Request, cookieName string, cookies string) {
+func SetCookie(w http.ResponseWriter, cookieName string, cookies string) {
 	cookie := &http.Cookie{
 		Name:     cookieName,
 		Value:    cookies,
-		Path:     r.URL.Path,
+		Path:     "/",
 		Secure:   false,
 		HttpOnly: true,
 		Expires:  time.Now().Add(time.Hour),
@@ -67,8 +69,8 @@ func SetCookie(w http.ResponseWriter, r *http.Request, cookieName string, cookie
 	http.SetCookie(w, cookie)
 }
 
-func AuthMiddleWare(router *Router) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func AuthMiddleWare(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("jwt")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
@@ -78,12 +80,14 @@ func AuthMiddleWare(router *Router) http.HandlerFunc {
 			http.Error(w, "Cookie is empty", http.StatusUnauthorized)
 			return
 		}
-		if err := db.ValidateToken(cookie.Value); err != nil {
+		claims, err := db.ValidateToken(cookie.Value)
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		router.UserEndPoints()
-	}
+		r = r.WithContext(context.WithValue(r.Context(), "id", claims.UserId))
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (rout *Router) signIn(w http.ResponseWriter, r *http.Request) { // Entry
@@ -107,7 +111,7 @@ func (rout *Router) signIn(w http.ResponseWriter, r *http.Request) { // Entry
 		return
 	}
 
-	SetCookie(w, r, "jwt", token)
+	SetCookie(w, "jwt", token)
 }
 
 func WriteJSON(w http.ResponseWriter, status int, a interface{}) error {
@@ -135,35 +139,52 @@ func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	WriteJSON(w, http.StatusOK, map[string]interface{}{
 		"id": id,
 	})
-	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (rout *Router) DeleteAccount(w http.ResponseWriter, r *http.Request) {
-	user := &db.User{}
-	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		rout.logg.Errorln(err)
-		return
-	}
+	vars := mux.Vars(r)
+	userID, _ := strconv.Atoi(vars["id"])
+	rout.logg.Infof("ID: %d", userID)
 
-	id, err := rout.srv.Accounts.DeleteUser(r.Context(), user.ID)
+	id, err := rout.srv.Accounts.DeleteUser(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		rout.logg.Errorln(err)
 		return
 	}
 
-	vars := mux.Vars(r)
-	userID, _ := strconv.Atoi(vars["id"])
-	rout.logg.Infof("ID: %d", userID)
-
 	WriteJSON(w, http.StatusOK, map[string]interface{}{
 		"id": id,
 	})
 }
 
+func (rout *Router) GetAccount(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	ID, _ := strconv.Atoi(vars["id"])
+	rout.logg.Infof("ID: %d", ID)
+
+	user, err := rout.srv.Accounts.GetUser(r.Context(), ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		rout.logg.Errorln(err)
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, map[string]interface{}{
+		"id":    user.ID,
+		"name":  user.Name,
+		"email": user.Email,
+	})
+}
+
 func (rout *Router) UpdateAccount(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	ID, _ := strconv.Atoi(vars["id"])
+	rout.logg.Infof("ID: %d", ID)
+
 	user := &db.User{}
+	user.ID = ID
+
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		rout.logg.Errorln(err)
@@ -177,17 +198,19 @@ func (rout *Router) UpdateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(r)
-	userID, _ := strconv.Atoi(vars["id"])
-	rout.logg.Infof("ID: %d", userID)
-
 	WriteJSON(w, http.StatusOK, map[string]interface{}{
 		"id": id,
 	})
 }
 
 func (rout *Router) PartUpdateAccountName(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	ID, _ := strconv.Atoi(vars["id"])
+	rout.logg.Infof("ID: %d", ID)
+
 	user := &db.User{}
+	user.ID = ID
+
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		rout.logg.Errorln(err)
@@ -201,17 +224,19 @@ func (rout *Router) PartUpdateAccountName(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	vars := mux.Vars(r)
-	userID, _ := strconv.Atoi(vars["id"])
-	rout.logg.Infof("ID: %d", userID)
-
 	WriteJSON(w, http.StatusOK, map[string]interface{}{
 		"id": id,
 	})
 }
 
 func (rout *Router) PartUpdateAccountEmail(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	ID, _ := strconv.Atoi(vars["id"])
+	rout.logg.Infof("ID: %d", ID)
+
 	user := &db.User{}
+	user.ID = ID
+
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		rout.logg.Errorln(err)
@@ -225,17 +250,19 @@ func (rout *Router) PartUpdateAccountEmail(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	vars := mux.Vars(r)
-	userID, _ := strconv.Atoi(vars["id"])
-	rout.logg.Infof("ID: %d", userID)
-
 	WriteJSON(w, http.StatusOK, map[string]interface{}{
 		"id": id,
 	})
 }
 
 func (rout *Router) PartUpdateAccountPass(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	ID, _ := strconv.Atoi(vars["id"])
+	rout.logg.Infof("ID: %d", ID)
+
 	user := &db.User{}
+	user.ID = ID
+
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		rout.logg.Errorln(err)
@@ -248,10 +275,6 @@ func (rout *Router) PartUpdateAccountPass(w http.ResponseWriter, r *http.Request
 		rout.logg.Errorln(err)
 		return
 	}
-
-	vars := mux.Vars(r)
-	userID, _ := strconv.Atoi(vars["id"])
-	rout.logg.Infof("ID: %d", userID)
 
 	WriteJSON(w, http.StatusOK, map[string]interface{}{
 		"id": id,

@@ -30,9 +30,9 @@ func (s *Server) Run(router *handlers.Router) error {
 	router.SayHello()
 	router.AuthEndPoints() // <-- sign-up/sign-in
 
-	usersPoints := router
-	usersPoints.R.PathPrefix("/users").Subrouter()
+	usersPoints := router.R.PathPrefix("/users").Subrouter()
 	handlers.AuthMiddleWare(usersPoints)
+	router.UserEndPoints(usersPoints)
 
 	s.server = &http.Server{
 		Addr:           s.conf.Addr_PORT,

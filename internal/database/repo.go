@@ -25,9 +25,9 @@ func NewRepo(db *DataBase) *Repo {
 	}
 }
 
-type Claims struct {
+type MyClaims struct {
 	jwt.StandardClaims
-	Id int `json:"id"`
+	UserId int `json:"id"`
 }
 
 func (rp *Repo) CreateNewUser(c context.Context, name, email, pass string) (int, error) {
@@ -65,7 +65,7 @@ func (rp *Repo) DeleteUser(c context.Context, id int) (int, error) {
 		return 0, err
 	}
 
-	query := "DELETE FROM clients WHERE id = $1 RETURNING id"
+	query := "DELETE FROM clients WHERE id = $1"
 	rows, err := rp.db.sqlDB.ExecContext(ctx, query, id)
 	res, _ := rows.RowsAffected()
 	if res == 0 {
@@ -77,7 +77,7 @@ func (rp *Repo) DeleteUser(c context.Context, id int) (int, error) {
 		return 0, err
 	}
 
-	rp.db.logger.Infoln("User successfully deleted")
+	rp.db.logger.Infof("User successfully deleted ID: %d", id)
 	return id, nil
 }
 
@@ -95,27 +95,13 @@ func (rp *Repo) UpdateUserFully(c context.Context, user *User) (int, error) {
 		return 0, err
 	}
 
-	query := "UPDATE clients SET username = $1 email = $2 encrypt_password = $3 WHERE id = $4"
-
-	stmt, err := rp.db.sqlDB.PrepareContext(ctx, query)
-	if err != nil {
-		rp.db.logger.Errorln(err)
-		return 0, err
-	}
-	defer stmt.Close()
-
-	rows, err := stmt.ExecContext(ctx, user.ID, user.Name, user.Email, enc_pass)
-	res, _ := rows.RowsAffected()
-	if res == 0 {
-		rp.db.logger.Infoln("Database is empty")
-		return 0, nil
-	}
-	if err != nil {
+	query := "UPDATE clients SET username = $1, email = $2, encrypt_password = $3 WHERE id = $4"
+	if _, err := rp.db.sqlDB.ExecContext(ctx, query, user.Name, user.Email, enc_pass, user.ID); err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
 	}
 
-	rp.db.logger.Infoln("User successfully updated")
+	rp.db.logger.Infof("User successfully updated ID: %d", user.ID)
 	return user.ID, nil
 }
 
@@ -127,22 +113,8 @@ func (rp *Repo) PartUpdateUserName(c context.Context, user *User) (int, error) {
 		return 0, err
 	}
 
-	query := "UPDATE clients SET username = $1 WHERE id = $2 RETURNING id"
-
-	stmt, err := rp.db.sqlDB.PrepareContext(ctx, query)
-	if err != nil {
-		rp.db.logger.Errorln(err)
-		return 0, err
-	}
-	defer stmt.Close()
-
-	rows, err := stmt.ExecContext(ctx, user.ID, user.Name)
-	res, _ := rows.RowsAffected()
-	if res == 0 {
-		rp.db.logger.Infoln("Database is empty")
-		return 0, nil
-	}
-	if err != nil {
+	query := "UPDATE clients SET username = $1 WHERE id = $2"
+	if _, err := rp.db.sqlDB.ExecContext(ctx, query, user.Name, user.ID); err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
 	}
@@ -159,22 +131,8 @@ func (rp *Repo) PartUpdateUserEmail(c context.Context, user *User) (int, error) 
 		return 0, err
 	}
 
-	query := "UPDATE clients SET email = $1 WHERE id = $2 RETURNING id"
-
-	stmt, err := rp.db.sqlDB.PrepareContext(ctx, query)
-	if err != nil {
-		rp.db.logger.Errorln(err)
-		return 0, err
-	}
-	defer stmt.Close()
-
-	rows, err := stmt.ExecContext(ctx, user.ID, user.Email)
-	res, _ := rows.RowsAffected()
-	if res == 0 {
-		rp.db.logger.Infoln("Database is empty")
-		return 0, nil
-	}
-	if err != nil {
+	query := "UPDATE clients SET email = $1 WHERE = $2"
+	if _, err := rp.db.sqlDB.ExecContext(ctx, query, user.Email, user.ID); err != nil {
 		rp.db.logger.Errorln(err)
 		return 0, err
 	}
@@ -197,8 +155,8 @@ func (rp *Repo) PartUpdateUserPass(c context.Context, user *User) (int, error) {
 		return 0, err
 	}
 
-	query := "UPDATE clients SET encrypt_password = $1 WHERE id = $2 RETURNING id"
-	if _, err := rp.db.sqlDB.ExecContext(ctx, query, user.ID, enc_pass); err != nil {
+	query := "UPDATE clients SET encrypt_password = $1 WHERE id = $2"
+	if _, err := rp.db.sqlDB.ExecContext(ctx, query, enc_pass, user.ID); err != nil {
 		rp.db.logger.Infoln(err)
 		return 0, err
 	}
@@ -227,7 +185,7 @@ func (rp *Repo) GenerateJWT(c context.Context, email, pass string) (string, erro
 		return "", err
 	}
 
-	JWT := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
+	JWT := jwt.NewWithClaims(jwt.SigningMethodHS256, &MyClaims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(5 * time.Hour).Unix(), // TTL of token
 			IssuedAt:  time.Now().Unix(),
@@ -238,23 +196,35 @@ func (rp *Repo) GenerateJWT(c context.Context, email, pass string) (string, erro
 	return JWT.SignedString([]byte(signKey))
 }
 
-func ValidateToken(tokenStr string) error {
-	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+func ValidateToken(tokenStr string) (*MyClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &MyClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return signKey, nil
 	})
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
-			return errors.New("Unauthorized")
+			return nil, errors.New("Unauthorized")
 		}
-		return errors.New("Bad Request")
+		return nil, errors.New("Bad Request")
 	}
 
-	_, ok := token.Claims.(*Claims)
+	claims, ok := token.Claims.(*MyClaims)
 	if !ok || !token.Valid {
-		return errors.New("Unauthorized")
+		return nil, errors.New("Unauthorized")
 	}
 
-	return nil
+	return claims, nil
+}
+
+func (rp *Repo) GetUser(c context.Context, id int) (*User, error) {
+	c, cancel := context.WithTimeout(c, rp.timeOut)
+	defer cancel()
+	user := &User{}
+	query := "SELECT id, username, email FROM clients WHERE id = $1"
+	err := rp.db.sqlDB.QueryRowContext(c, query, id).Scan(&user.ID, &user.Name, &user.Email)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func (rp *Repo) IdExist(ctx context.Context, id int) (int, error) {
@@ -264,7 +234,7 @@ func (rp *Repo) IdExist(ctx context.Context, id int) (int, error) {
 	query := "SELECT id FROM clients WHERE id = $1"
 	err := rp.db.sqlDB.QueryRowContext(c, query, id).Scan(&ID)
 	if err != nil {
-		return 0, err
+		return 0, errors.New("No such user")
 	}
 	return ID, nil
 }

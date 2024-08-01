@@ -14,6 +14,7 @@ type Accounts interface {
 	PartUpdateUserEmail(c context.Context, user *db.User) (int, error)
 	PartUpdateUserPass(c context.Context, user *db.User) (int, error)
 	GenerateJWT(c context.Context, email, pass string) (string, error)
+	GetUser(c context.Context, id int) (*db.User, error)
 	IdExist(ctx context.Context, id int) (int, error)
 }
 
