@@ -55,8 +55,8 @@ func (d *DataBase) openDB(conf config.Config) error {
 func RetryPing(db *sqlx.DB) error {
 	var err error
 	for i := 0; i < 5; i++ {
-		if err := db.Ping(); err == nil {
-			break
+		if err = db.Ping(); err == nil {
+			return nil
 		}
 		time.Sleep(time.Second)
 	}

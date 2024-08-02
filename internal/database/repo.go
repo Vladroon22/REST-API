@@ -171,11 +171,9 @@ func (rp *Repo) GenerateJWT(c context.Context, email, pass string) (string, erro
 	var id int
 	var hash string
 	query := "SELECT id, encrypt_password FROM clients WHERE email = $1"
-	err := rp.db.sqlDB.QueryRowContext(ctx, query, email).Scan(&id, &hash)
-
-	if err != nil {
+	if err := rp.db.sqlDB.QueryRowContext(ctx, query, email).Scan(&id, &hash); err != nil {
 		if err == sql.ErrNoRows {
-			return "", err
+			return "", errors.New("No-such-user")
 		}
 		return "", err
 	}
@@ -185,15 +183,18 @@ func (rp *Repo) GenerateJWT(c context.Context, email, pass string) (string, erro
 		return "", err
 	}
 
-	JWT := jwt.NewWithClaims(jwt.SigningMethodHS256, &MyClaims{
+	JWT, err := jwt.NewWithClaims(jwt.SigningMethodHS256, &MyClaims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(5 * time.Hour).Unix(), // TTL of token
 			IssuedAt:  time.Now().Unix(),
 		},
 		id,
-	})
+	}).SignedString([]byte(signKey))
+	if err != nil {
+		return "", err
+	}
 
-	return JWT.SignedString([]byte(signKey))
+	return JWT, nil
 }
 
 func ValidateToken(tokenStr string) (*MyClaims, error) {
@@ -204,7 +205,7 @@ func ValidateToken(tokenStr string) (*MyClaims, error) {
 		if err == jwt.ErrSignatureInvalid {
 			return nil, errors.New("Unauthorized")
 		}
-		return nil, errors.New("Bad Request")
+		return nil, errors.New("Bad-Request")
 	}
 
 	claims, ok := token.Claims.(*MyClaims)
@@ -234,7 +235,7 @@ func (rp *Repo) IdExist(ctx context.Context, id int) (int, error) {
 	query := "SELECT id FROM clients WHERE id = $1"
 	err := rp.db.sqlDB.QueryRowContext(c, query, id).Scan(&ID)
 	if err != nil {
-		return 0, errors.New("No such user")
+		return 0, errors.New("No-such-user")
 	}
 	return ID, nil
 }
