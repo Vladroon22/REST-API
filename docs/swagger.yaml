@@ -1,0 +1,14 @@
+basePath: /
+host: 127.0.0.1:8000
+info:
+  contact: {}
+  description: API
+  title: REST-API
+  version: "1.0"
+paths: {}
+securityDefinitions:
+  signKey:
+    in: header
+    name: jwt
+    type: apiKey
+swagger: "2.0"

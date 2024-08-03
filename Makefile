@@ -8,6 +8,11 @@ run: build
 #	sudo docker run --name=postgres -e POSTGRES_PASSWORD=12345 -p 5430:5432 -d postgres:16.2
 	./rest
 
+swag:
+	swag init -g app.go --dir cmd,internal/handlers
+swagrm:
+	rm -rf ./docs
+
 migrate:
 	migrate -path ./migrations -database 'postgresql://postgres:12345@localhost:5430/postgres?sslmode=disable' up
 migrate-down:

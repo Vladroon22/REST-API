@@ -1,0 +1,19 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API",
+        "title": "REST-API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "127.0.0.1:8000",
+    "basePath": "/",
+    "paths": {},
+    "securityDefinitions": {
+        "signKey": {
+            "type": "apiKey",
+            "name": "jwt",
+            "in": "header"
+        }
+    }
+}

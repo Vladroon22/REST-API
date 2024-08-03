@@ -28,6 +28,7 @@ func (s *Server) Run(router *handlers.Router) error {
 	s.logger.Infoln("Init router")
 
 	router.SayHello()
+	router.Swagger()
 	router.AuthEndPoints() // <-- sign-up/sign-in
 
 	usersPoints := router.R.PathPrefix("/users").Subrouter()

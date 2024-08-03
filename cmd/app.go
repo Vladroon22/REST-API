@@ -12,12 +12,23 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/Vladroon22/REST-API/config"
-	db "github.com/Vladroon22/REST-API/internal/database"
+	d "github.com/Vladroon22/REST-API/internal/database"
 	"github.com/Vladroon22/REST-API/internal/handlers"
 	server "github.com/Vladroon22/REST-API/internal/server"
 	"github.com/Vladroon22/REST-API/internal/service"
 	"github.com/sirupsen/logrus"
 )
+
+// @title REST-API
+// @version 1.0
+// @description API
+
+// @host 127.0.0.1:8000
+// @BasePath /
+
+// @securityDefinitions.apikey signKey
+// @in header
+// @name jwt
 
 var (
 	pathToToml string
@@ -37,12 +48,12 @@ func main() {
 		return
 	}
 
-	DB := db.NewDB(conf, logg)
-	if err := DB.Connect(); err != nil {
+	db := d.NewDB(conf, logg)
+	if err := db.Connect(); err != nil {
 		logg.Fatalln(err)
 	}
 
-	repo := db.NewRepo(DB)
+	repo := d.NewRepo(db)
 	services := service.NewService(repo)
 	router := handlers.NewRouter(services)
 
@@ -68,7 +79,7 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if err := DB.CloseDB(); err != nil {
+		if err := db.CloseDB(); err != nil {
 			logg.Errorln(err)
 			return
 		}

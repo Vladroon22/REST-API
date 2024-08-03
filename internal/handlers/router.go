@@ -7,11 +7,12 @@ import (
 	"strconv"
 	"time"
 
+	_ "github.com/Vladroon22/REST-API/docs"
 	db "github.com/Vladroon22/REST-API/internal/database"
 	"github.com/Vladroon22/REST-API/internal/service"
-
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type Router struct {
@@ -39,8 +40,33 @@ func NewRouter(srv *service.Service) *Router {
 	}
 }
 
+// SayHello godoc
+// @Summary Say Hello
+// @ID create-account
+// @Accept  json
+// @Produce  json
+// @Description Main page
+// @Tags example
+// @Success 200 {string} string "MAIN PAGE"
+// @Router / [get]
+
 func (r *Router) SayHello() {
 	r.R.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("MAIN PAGE")) }).Methods("GET")
+}
+
+// Swagger godoc
+// @Summary Swagger documentation
+// @Description Swagger documentation endpoint
+// @Tags swagger
+// @Router /swagger/ [get]
+
+func (r *Router) Swagger() {
+	r.R.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
+		httpSwagger.URL("http://127.0.0.1:8000/swagger/doc.json"), //The url pointing to API definition
+		httpSwagger.DeepLinking(true),
+		httpSwagger.DocExpansion("none"),
+		httpSwagger.DomID("swagger-ui"),
+	)).Methods("GET")
 }
 
 func (r *Router) AuthEndPoints() {
@@ -90,6 +116,18 @@ func AuthMiddleWare(next http.Handler) http.Handler {
 	})
 }
 
+// signIn godoc
+// @Summary Sign in a user
+// @Description Log in a user by email and password
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param input body AuthInput true "Credentials"
+// @Success 200 {string} string "token"
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {string} string "Internal server error"
+// @Router /sign-in [post]
+
 func (rout *Router) signIn(w http.ResponseWriter, r *http.Request) { // Entry
 	var input AuthInput
 
@@ -121,6 +159,17 @@ func WriteJSON(w http.ResponseWriter, status int, a interface{}) error {
 	return json.NewEncoder(w).Encode(a)
 }
 
+// CreateAccount godoc
+// @Summary Create a new account
+// @Description Register a new user
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param user body RegInput true "Registration data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {string} string "Internal server error"
+// @Router /sign-up [post]
+
 func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	var user RegInput
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
@@ -141,6 +190,15 @@ func (rout *Router) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// DeleteAccount godoc
+// @Summary Delete an account
+// @Description Remove a user account by ID
+// @Tags user
+// @Param id path int true "User ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {string} string "Internal server error"
+// @Router /user/{id} [delete]
+
 func (rout *Router) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID, _ := strconv.Atoi(vars["id"])
@@ -157,6 +215,16 @@ func (rout *Router) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		"id": id,
 	})
 }
+
+// GetAccount godoc
+// @Summary Get an account
+// @Description Get user account by ID
+// @Tags user
+// @Produce  json
+// @Param id path int true "User ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {string} string "Internal server error"
+// @Router /user/{id} [get]
 
 func (rout *Router) GetAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -176,6 +244,18 @@ func (rout *Router) GetAccount(w http.ResponseWriter, r *http.Request) {
 		"email": user.Email,
 	})
 }
+
+// UpdateAccount godoc
+// @Summary Update an account
+// @Description Fully update a user account
+// @Tags user
+// @Accept  json
+// @Produce  json
+// @Param id path int true "User ID"
+// @Param user body db.User true "User data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {string} string "Internal server error"
+// @Router /user/{id} [put]
 
 func (rout *Router) UpdateAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -203,6 +283,18 @@ func (rout *Router) UpdateAccount(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// PartUpdateAccountName godoc
+// @Summary Partially update account name
+// @Description Update user account name
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param user body db.User true "User data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {string} "Internal server error"
+// @Router /user/name/{id} [patch]
+
 func (rout *Router) PartUpdateAccountName(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	ID, _ := strconv.Atoi(vars["id"])
@@ -229,6 +321,18 @@ func (rout *Router) PartUpdateAccountName(w http.ResponseWriter, r *http.Request
 	})
 }
 
+// PartUpdateAccountEmail godoc
+// @Summary Partially update account email
+// @Description Update user account email
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param user body db.User true "User data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {string} "Internal server error"
+// @Router /user/email/{id} [patch]
+
 func (rout *Router) PartUpdateAccountEmail(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	ID, _ := strconv.Atoi(vars["id"])
@@ -254,6 +358,18 @@ func (rout *Router) PartUpdateAccountEmail(w http.ResponseWriter, r *http.Reques
 		"id": id,
 	})
 }
+
+// PartUpdateAccountPass godoc
+// @Summary Partially update account password
+// @Description Update user account password
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param user body db.User true "User data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {string} "Internal server error"
+// @Router /user/pass/{id} [patch]
 
 func (rout *Router) PartUpdateAccountPass(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
