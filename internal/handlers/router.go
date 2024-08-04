@@ -10,6 +10,7 @@ import (
 	_ "github.com/Vladroon22/REST-API/docs"
 	db "github.com/Vladroon22/REST-API/internal/database"
 	"github.com/Vladroon22/REST-API/internal/service"
+	"github.com/Vladroon22/REST-API/internal/sessions"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -112,6 +113,10 @@ func AuthMiddleWare(next http.Handler) http.Handler {
 			return
 		}
 		r = r.WithContext(context.WithValue(r.Context(), "id", claims.UserId))
+
+		session := sessions.NewSession()
+		session.AddNewSeesion(cookie.Value, claims.UserId, 1*time.Hour)
+
 		next.ServeHTTP(w, r)
 	})
 }
