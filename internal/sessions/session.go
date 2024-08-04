@@ -40,7 +40,7 @@ func (s *MapSessions) CheckSession(token string, id int, d time.Duration) {
 
 	go expiresTime(d)
 
-	if session, exist := s.session[id]; !exist {
+	if session, exist := s.session[id]; exist {
 		if session.d.Before(time.Now()) {
 			s.DeleteSession(id)
 		}

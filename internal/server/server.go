@@ -32,7 +32,7 @@ func (s *Server) Run(router *handlers.Router) error {
 	router.AuthEndPoints() // <-- sign-up/sign-in
 
 	usersPoints := router.R.PathPrefix("/users").Subrouter()
-	handlers.AuthMiddleWare(usersPoints)
+	router.AuthMiddleWare(usersPoints)
 	router.UserEndPoints(usersPoints)
 
 	s.server = &http.Server{

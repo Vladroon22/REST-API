@@ -16,10 +16,15 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+const (
+	TTL = time.Hour
+)
+
 type Router struct {
 	R    *mux.Router
 	logg *logrus.Logger
 	srv  *service.Service
+	sess *sessions.MapSessions
 }
 
 type AuthInput struct {
@@ -37,6 +42,7 @@ func NewRouter(srv *service.Service) *Router {
 	return &Router{
 		R:    mux.NewRouter(),
 		logg: logrus.New(),
+		sess: sessions.NewSession(),
 		srv:  srv,
 	}
 }
@@ -73,6 +79,7 @@ func (r *Router) Swagger() {
 func (r *Router) AuthEndPoints() {
 	r.R.HandleFunc("/sign-up", r.CreateAccount).Methods("POST")
 	r.R.HandleFunc("/sign-in", r.signIn).Methods("POST")
+
 }
 
 func (r *Router) UserEndPoints(sub *mux.Router) {
@@ -82,6 +89,7 @@ func (r *Router) UserEndPoints(sub *mux.Router) {
 	sub.HandleFunc("/email/{id:[0-9]+}", r.PartUpdateAccountEmail).Methods("PATCH")
 	sub.HandleFunc("/pass/{id:[0-9]+}", r.PartUpdateAccountPass).Methods("PATCH")
 	sub.HandleFunc("/{id:[0-9]+}", r.DeleteAccount).Methods("DELETE")
+	sub.HandleFunc("/logout/{id:[0-9]+}", r.logout).Methods("GET")
 }
 
 func SetCookie(w http.ResponseWriter, cookieName string, cookies string) {
@@ -91,12 +99,24 @@ func SetCookie(w http.ResponseWriter, cookieName string, cookies string) {
 		Path:     "/",
 		Secure:   false,
 		HttpOnly: true,
-		Expires:  time.Now().Add(time.Hour),
+		Expires:  time.Now().Add(TTL),
 	}
 	http.SetCookie(w, cookie)
 }
 
-func AuthMiddleWare(next http.Handler) http.Handler {
+func ClearCookie(w http.ResponseWriter, cookieName string, cookies string) {
+	cookie := &http.Cookie{
+		Name:     cookieName,
+		Value:    cookies,
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		Secure:   false,
+		HttpOnly: true,
+	}
+	http.SetCookie(w, cookie)
+}
+
+func (rout *Router) AuthMiddleWare(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("jwt")
 		if err != nil {
@@ -114,11 +134,30 @@ func AuthMiddleWare(next http.Handler) http.Handler {
 		}
 		r = r.WithContext(context.WithValue(r.Context(), "id", claims.UserId))
 
-		session := sessions.NewSession()
-		session.AddNewSeesion(cookie.Value, claims.UserId, 1*time.Hour)
+		rout.sess.AddNewSeesion(cookie.Value, claims.UserId, TTL)
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+// logout godoc
+// @Summary Log out a user
+// @Description Log out a user from the app and clear cookies
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Success 303 {string} string "See Other"
+// @Failure 500 {string} string "Internal server error"
+// @Router /logout [get]
+
+func (rout *Router) logout(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userID, _ := strconv.Atoi(vars["id"])
+	rout.logg.Infof("Has been logout the ID: %d", userID)
+
+	ClearCookie(w, "jwt", "")
+	rout.sess.DeleteSession(userID)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 // signIn godoc
