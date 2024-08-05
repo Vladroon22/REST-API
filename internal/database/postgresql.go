@@ -36,7 +36,7 @@ func (d *DataBase) openDB(conf config.Config) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	str := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?%s", conf.Username, conf.Password, conf.Host, conf.Port, conf.DBname, conf.SSLmode)
-	db, err := sqlx.ConnectContext(ctx, "postgres", "postgresql://postgres:12345@localhost:5430/postgres?sslmode=disable")
+	db, err := sqlx.ConnectContext(ctx, "postgres", str)
 	d.logger.Infoln(str)
 	if err != nil {
 		d.logger.Errorln(err)
@@ -47,7 +47,6 @@ func (d *DataBase) openDB(conf config.Config) error {
 		return err
 	}
 	d.sqlDB = db
-	d.logger.Infoln("Database configurated")
 
 	return nil
 }
