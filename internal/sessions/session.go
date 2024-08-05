@@ -11,9 +11,10 @@ type MapSessions struct {
 }
 
 type Session struct {
-	ID    int
-	d     time.Time
-	token string
+	ID         int
+	regTime    time.Time
+	expireTime time.Time
+	token      string
 }
 
 func NewSession() *MapSessions {
@@ -22,26 +23,27 @@ func NewSession() *MapSessions {
 	}
 }
 
-func (s *MapSessions) AddNewSeesion(token string, userID int, d time.Duration) {
+func (s *MapSessions) AddNewSeesion(token string, userID int, dur time.Duration) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	s.session[userID] = &Session{
-		ID:    userID,
-		token: token,
+		ID:      userID,
+		token:   token,
+		regTime: time.Now(),
 	}
 
-	go s.CheckSession(token, userID, d)
+	go s.CheckSession(token, userID, dur)
 }
 
-func (s *MapSessions) CheckSession(token string, id int, d time.Duration) {
+func (s *MapSessions) CheckSession(token string, id int, dur time.Duration) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	go expiresTime(d)
+	go expiresTime(dur)
 
 	if session, exist := s.session[id]; exist {
-		if session.d.Before(time.Now()) {
+		if session.expireTime.Before(session.regTime) {
 			s.DeleteSession(id)
 		}
 	}
