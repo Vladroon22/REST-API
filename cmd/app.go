@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,7 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/BurntSushi/toml"
 	"github.com/Vladroon22/REST-API/config"
 	d "github.com/Vladroon22/REST-API/internal/database"
 	"github.com/Vladroon22/REST-API/internal/handlers"
@@ -30,23 +28,9 @@ import (
 // @in header
 // @name jwt
 
-var (
-	pathToToml string
-)
-
 func main() {
-	flag.Parse()
-
-	flag.StringVar(&pathToToml, "path-to-toml", "./config/conf.toml", "path-to-toml")
-
-	logg := logrus.New()          // logger
-	conf := config.CreateConfig() // config
-
-	_, err := toml.DecodeFile(pathToToml, conf)
-	if err != nil {
-		logg.Errorln(err)
-		return
-	}
+	logg := logrus.New()
+	conf := config.CreateConfig()
 
 	db := d.NewDB(conf, logg)
 	if err := db.Connect(); err != nil {

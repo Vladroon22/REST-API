@@ -1,15 +1,24 @@
 package config
 
+import "os"
+
 type Config struct {
-	Addr_PORT string `toml:"addr_port"`
-	Host      string `toml:"host"`
-	Port      string `toml:"port"`
-	Username  string `toml:"username"`
-	Password  string `toml:"pass"`
-	SSLmode   string `toml:"sslmode"`
-	DBname    string `toml:"dbname"`
+	Addr_PORT string
+	DB        string
+	JwtKEY    string
 }
 
 func CreateConfig() *Config {
-	return &Config{}
+	return &Config{
+		Addr_PORT: getEnv("addr_port", ":3000"),
+		DB:        getEnv("DB", ""),
+		JwtKEY:    getEnv("KEY", ""),
+	}
+}
+
+func getEnv(key, fallback string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return fallback
 }

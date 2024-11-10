@@ -10,7 +10,6 @@ import (
 	_ "github.com/Vladroon22/REST-API/docs"
 	db "github.com/Vladroon22/REST-API/internal/database"
 	"github.com/Vladroon22/REST-API/internal/service"
-	"github.com/Vladroon22/REST-API/internal/sessions"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -24,7 +23,6 @@ type Router struct {
 	R    *mux.Router
 	logg *logrus.Logger
 	srv  *service.Service
-	sess *sessions.MapSessions
 }
 
 type AuthInput struct {
@@ -42,7 +40,6 @@ func NewRouter(srv *service.Service) *Router {
 	return &Router{
 		R:    mux.NewRouter(),
 		logg: logrus.New(),
-		sess: sessions.NewSession(),
 		srv:  srv,
 	}
 }
@@ -134,8 +131,6 @@ func (rout *Router) AuthMiddleWare(next http.Handler) http.Handler {
 		}
 		r = r.WithContext(context.WithValue(r.Context(), "id", claims.UserId))
 
-		rout.sess.AddNewSeesion(cookie.Value, claims.UserId, TTL)
-
 		next.ServeHTTP(w, r)
 	})
 }
@@ -156,7 +151,6 @@ func (rout *Router) logout(w http.ResponseWriter, r *http.Request) {
 	rout.logg.Infof("Has been logout the ID: %d", userID)
 
 	ClearCookie(w, "jwt", "")
-	rout.sess.DeleteSession(userID)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 

@@ -3,10 +3,10 @@ module github.com/Vladroon22/REST-API
 go 1.22.1
 
 require (
-	github.com/BurntSushi/toml v1.3.2
 	github.com/gorilla/mux v1.8.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/swaggo/http-swagger v1.3.4
+	github.com/swaggo/swag v1.16.3
 	golang.org/x/crypto v0.25.0
 )
 
@@ -19,7 +19,6 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe // indirect
-	github.com/swaggo/swag v1.16.3 // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
