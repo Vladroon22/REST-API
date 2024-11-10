@@ -2,6 +2,7 @@ package database
 
 import (
 	"errors"
+	"regexp"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -36,10 +37,10 @@ func encrypt(pass string) (string, error) {
 	return string(encrypt), nil
 }
 
-//func validateEmail(email string) bool {
-//	emailRegex := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-//	return emailRegex.MatchString(email)
-//}
+func validateEmail(email string) bool {
+	emailRegex := regexp.MustCompile("(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$)")
+	return emailRegex.MatchString(email)
+}
 
 func Valid(user *User) error {
 	if user.Password == "" {
@@ -52,8 +53,8 @@ func Valid(user *User) error {
 		return errors.New("email can't be blank")
 	}
 
-	//if ok := validateEmail(user.Email); !ok {
-	//	return errors.New("wrong email input")
-	//}
+	if ok := validateEmail(user.Email); !ok {
+		return errors.New("wrong email input")
+	}
 	return nil
 }

@@ -81,10 +81,10 @@ func (r *Router) AuthEndPoints() {
 
 func (r *Router) UserEndPoints(sub *mux.Router) {
 	sub.HandleFunc("/{id:[0-9]+}", r.GetAccount).Methods("GET")
-	sub.HandleFunc("/{id:[0-9]+}", r.UpdateAccount).Methods("PUT")
-	sub.HandleFunc("/name/{id:[0-9]+}", r.PartUpdateAccountName).Methods("PATCH")
-	sub.HandleFunc("/email/{id:[0-9]+}", r.PartUpdateAccountEmail).Methods("PATCH")
-	sub.HandleFunc("/pass/{id:[0-9]+}", r.PartUpdateAccountPass).Methods("PATCH")
+	sub.HandleFunc("/{id:[0-9]+}", r.UpdateAccount).Methods("PUT, POST")
+	sub.HandleFunc("/name/{id:[0-9]+}", r.PartUpdateAccountName).Methods("POST, PATCH")
+	sub.HandleFunc("/email/{id:[0-9]+}", r.PartUpdateAccountEmail).Methods("POST, PATCH")
+	sub.HandleFunc("/pass/{id:[0-9]+}", r.PartUpdateAccountPass).Methods("POST, PATCH")
 	sub.HandleFunc("/{id:[0-9]+}", r.DeleteAccount).Methods("DELETE")
 	sub.HandleFunc("/logout/{id:[0-9]+}", r.logout).Methods("GET")
 }

@@ -4,14 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
 
-const (
-	signKey = "jcuznys^N$74mc8o#9,eijf"
-)
+var signKey = []byte(os.Getenv("KEY"))
 
 type Repo struct {
 	db      *DataBase
