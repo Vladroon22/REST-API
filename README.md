@@ -24,23 +24,26 @@ export KEY="imagine your own secret key"
 <h3>Users/Auth EndPoints</h3>
 
 ```
-	"http://127.0.0.1:8000/swagger/doc.json" - swagger endpoint
+http://127.0.0.1:8000/swagger/doc.json - swagger endpoint
 
-	/sign-up - auth handler to pass registration --> int request params: email="...." username="..." pass="..."
+/sign-up - auth handler to pass registration 
+--> in request params: email="...." username="..." pass="..."
 
-    /sign-in - auth handler to get in service --> in request params: email="...." pass="..."
+/sign-in - auth handler to get in service 
+--> in request params: email="...." pass="..."
 
-    /users/{id:[0-9]+} - Get the account. GET - method
+/users/{id:[0-9]+} - Get the account. GET - method
 
-	/users/{id:[0-9]+} - Update the account. PUT, POST - methods
+/users/{id:[0-9]+} - Update the account. PUT, POST - methods
 
-	/users/name/{id:[0-9]+} - Part update account name. POST, PATCH - methods
+/users/name/{id:[0-9]+} - Part update account name. POST, PATCH - methods
 	
-    /users/email/{id:[0-9]+} - Part update account email. POST, PATCH - methods
+/users/email/{id:[0-9]+} - Part update account email. POST, PATCH - methods
 	
-    /users/pass/{id:[0-9]+} - Part update account password. POST, PATCH - methods
+/users/pass/{id:[0-9]+} - Part update account password. POST, PATCH - methods
 	
-    /users/{id:[0-9]+} - Delete the account. DELETE - method
+/users/{id:[0-9]+} - Delete the account. DELETE - method
 	
-    /users/logout/{id:[0-9]+} - Log out from account. GET-method
+/users/logout/{id:[0-9]+} - Log out from account. GET-method
+
 ```
