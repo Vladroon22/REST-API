@@ -26,11 +26,9 @@ export KEY="imagine your own secret key"
 ```
 	"http://127.0.0.1:8000/swagger/doc.json" - swagger endpoint
 
-	/sign-up - auth handler to pass registration 
-    email="...." username="..." pass="..."
+	/sign-up - auth handler to pass registration --> int request params: email="...." username="..." pass="..."
 
-    /sign-in - auth handler to get in service 
-    email="...." pass="..."
+    /sign-in - auth handler to get in service --> in request params: email="...." pass="..."
 
     /users/{id:[0-9]+} - Get the account. GET - method
 
